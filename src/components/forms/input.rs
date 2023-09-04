@@ -2,13 +2,31 @@ use leptos::*;
 
 use crate::utils::MaybeSignalExt;
 
+/// The type of an input field. This influences behavior of the input field and how its content is validated.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum InputType {
+    /// A generic text input field.
+    /// See [Tailwind Elements: Inputs#Text](https://tailwind-elements.com/docs/standard/forms/inputs/#text)
     Text,
+
+    /// An email input field.
+    /// See [Tailwind Elements: Inputs#Email](https://tailwind-elements.com/docs/standard/forms/inputs/#email)
     Email,
+
+    /// A password input field.
+    /// See [Tailwind Elements: Inputs#Password](https://tailwind-elements.com/docs/standard/forms/inputs/#password)
     Password,
+
+    /// A number input field.
+    /// See [Tailwind Elements: Inputs#Number](https://tailwind-elements.com/docs/standard/forms/inputs/#number)
     Number,
+
+    /// A telephone number input field.
+    /// See [Tailwind Elements: Inputs#Tel](https://tailwind-elements.com/docs/standard/forms/inputs/#tel)
     Tel,
+
+    /// A URL input field.
+    /// See [Tailwind Elements: Inputs#Url](https://tailwind-elements.com/docs/standard/forms/inputs/#url)
     Url,
 }
 
@@ -27,7 +45,7 @@ impl InputType {
 
 /// A text input component
 ///
-/// See https://tailwind-elements.com/docs/standard/forms/inputs/
+/// See [Tailwind Elements: Inputs](https://tailwind-elements.com/docs/standard/forms/inputs)
 #[component]
 pub fn Input<OnChangeFn: Fn(String) + 'static>(
     cx: Scope,

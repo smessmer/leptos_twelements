@@ -2,7 +2,7 @@ use leptos::*;
 
 /// A Dropdown component
 ///
-/// See https://tailwind-elements.com/docs/standard/components/dropdown/
+/// See [Tailwind Elements: Dropdown](https://tailwind-elements.com/docs/standard/components/dropdown)
 #[component]
 pub fn Dropdown(cx: Scope) -> impl IntoView {
     view! {cx,

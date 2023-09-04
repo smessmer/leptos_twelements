@@ -1,3 +1,7 @@
+//! Tailwind Elements Components.
+//!
+//! See [Tailwind Elements: Components](https://tailwind-elements.com/docs/standard/components/accordion/).
+
 mod button;
 pub use button::{Button, ButtonStyle};
 

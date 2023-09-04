@@ -2,7 +2,7 @@ use leptos::*;
 
 /// A Toggle Switch component
 ///
-/// See https://tailwind-elements.com/docs/standard/forms/switch/
+/// See [Tailwind Elements: Switch](https://tailwind-elements.com/docs/standard/forms/switch/)
 #[component]
 pub fn Switch<OnChangeFn: Fn(bool) + 'static>(
     cx: Scope,

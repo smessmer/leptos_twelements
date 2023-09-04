@@ -1,3 +1,5 @@
+//! Utility functions and extension traits for working with signals in Leptos.
+
 use leptos::{html::ElementDescriptor, *};
 use std::borrow::Cow;
 

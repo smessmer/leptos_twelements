@@ -14,7 +14,10 @@ mod server_setup {
         use super::*;
         use axum::{body::HttpBody, routing::get, Router};
 
+        /// Extension trait for [axum::Router]
         pub trait AxumRouterExt {
+            /// Call this method on your [axum::Router] to make it aware of Tailwind Elements.
+            /// and serve the Tailwind Elements JavaScript file at [JS_URL].
             fn setup_twelements(self) -> Self;
         }
 

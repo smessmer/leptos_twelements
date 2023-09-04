@@ -1,23 +1,62 @@
 use leptos::{html::button, *};
 
-use crate::methods::ripple::Ripple;
+use crate::methods::Ripple;
 use crate::utils::HtmlElementAttributeExt;
 
-// TODO Ripple
-// TODO Allow props to be reactive
-
+/// [ButtonStyle] influences the look&feel of a button.
+///
+/// See [Tailwind Elements: Buttons#Hierarchy](https://tailwind-elements.com/docs/standard/components/buttons/#hierarchy)
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ButtonStyle {
+    /// The primary button style.
+    ///
+    /// See [Tailwind Elements: Buttons#Hierarchy](https://tailwind-elements.com/docs/standard/components/buttons/#hierarchy)
     #[default]
     Primary,
+
+    /// The secondary button style.
+    ///
+    /// See [Tailwind Elements: Buttons#Hierarchy](https://tailwind-elements.com/docs/standard/components/buttons/#hierarchy)
     Secondary,
+
+    /// The tertiary button style.
+    ///
+    /// See [Tailwind Elements: Buttons#Hierarchy](https://tailwind-elements.com/docs/standard/components/buttons/#hierarchy)
     Tertiary,
+
+    /// The success button style.
+    ///
+    /// See [Tailwind Elements: Buttons#Contextual](https://tailwind-elements.com/docs/standard/components/buttons/#contextual)
     Success,
+
+    /// The danger button style.
+    ///
+    /// See [Tailwind Elements: Buttons#Contextual](https://tailwind-elements.com/docs/standard/components/buttons/#contextual)
     Danger,
+
+    /// The warning button style.
+    ///
+    /// See [Tailwind Elements: Buttons#Contextual](https://tailwind-elements.com/docs/standard/components/buttons/#contextual)
     Warning,
+
+    /// The info button style.
+    ///
+    /// See [Tailwind Elements: Buttons#Contextual](https://tailwind-elements.com/docs/standard/components/buttons/#contextual)
     Info,
+
+    /// The neutral light button style.
+    ///
+    /// See [Tailwind Elements: Buttons#Neutral](https://tailwind-elements.com/docs/standard/components/buttons/#neutral)
     NeutralLight,
+
+    /// The neutral dark button style.
+    ///
+    /// See [Tailwind Elements: Buttons#Neutral](https://tailwind-elements.com/docs/standard/components/buttons/#neutral)
     NeutralDark,
+
+    /// The neutral dark button style.
+    ///
+    /// See [Tailwind Elements: Buttons#Link](https://tailwind-elements.com/docs/standard/components/buttons/#link)
     Link,
     // TODO Outline variants (rounded and non-rounded)
     // TODO Floating Buttons
@@ -48,7 +87,7 @@ impl ButtonStyle {
 
 /// A Button component
 ///
-/// See https://tailwind-elements.com/docs/standard/components/buttons/
+/// See [Tailwind Elements: Buttons](https://tailwind-elements.com/docs/standard/components/buttons)
 #[component]
 pub fn Button(
     cx: Scope,

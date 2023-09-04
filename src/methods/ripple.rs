@@ -3,13 +3,32 @@ use leptos::{html::ElementDescriptor, *};
 
 /// Add a ripple effect to [Button](crate::components::Button) or other components
 ///
-/// See <https://tailwind-elements.com/docs/standard/methods/ripple>
+/// See [Tailwind Elements: Ripple](https://tailwind-elements.com/docs/standard/methods/ripple)
 #[derive(Default, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Ripple {
+    /// Color of the ripple effect.
+    ///
+    /// See [Tailwind Elements: Ripple#Colors](https://tailwind-elements.com/docs/standard/methods/ripple/#colors)
     pub color: Option<String>,
+
+    /// Duration of the ripple effect.
+    ///
+    /// See [Tailwind Elements: Ripple#Duration](https://tailwind-elements.com/docs/standard/methods/ripple/#duration)
     pub duration: Option<String>,
+
+    /// Whether the ripple effect is centered in the component, or at the position of the click.
+    ///
+    /// See [Tailwind Elements: Ripple#Centered](https://tailwind-elements.com/docs/standard/methods/ripple/#centered)
     pub centered: bool,
+
+    /// Whether the ripple effect is unbound or bound to the component (i.e. only displays within the component)
+    ///
+    /// See [Tailwind Elements: Ripple#Unbound](https://tailwind-elements.com/docs/standard/methods/ripple/#unbound)
     pub unbound: bool,
+
+    /// Radius of the ripple effect.
+    ///
+    /// See [Tailwind Elements: Ripple#Radius](https://tailwind-elements.com/docs/standard/methods/ripple/#radius)
     pub radius: Option<u32>,
 }
 

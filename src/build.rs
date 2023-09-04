@@ -11,6 +11,8 @@ const JS_PATH: &str = concat!(
 );
 const RS_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/src");
 
+/// Call this from your `build.rs` to install the Tailwind Elements files to the given target directory.
+/// This is necessary so that they can be referenced from your `tailwind.config.js`.
 pub fn install_files_to(target_dir: &Path) {
     let target_dir = target_dir.join(".leptos-twelements");
     if target_dir.exists() {
