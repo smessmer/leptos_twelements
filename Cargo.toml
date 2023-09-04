@@ -1,7 +1,7 @@
 [package]
 authors = ["Sebastian Messmer <mail@smessmer.de>"]
 name = "leptos_twelements"
-description = "The binary-layout library allows type-safe, inplace, zero-copy access to structured binary data. You define a custom data layout and give it a slice of binary data, and it will allow you to read and write the fields defined in the layout from the binary data without having to copy any of the data. It's similar to transmuting to/from a `#[repr(packed)]` struct, but much safer."
+description = "A UI component library for [Leptos](https://leptos.dev/), based on [Tailwind Elements](https://tailwind-elements.com/)."
 documentation = "https://docs.rs/leptos_twelements"
 rust-version = "1.72"
 edition = "2021"
@@ -11,7 +11,7 @@ homepage = "https://github.com/smessmer/leptos_twelements"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/smessmer/leptos_twelements"
-version = "0.0.1"
+version = "0.0.2"
 
 
 [dependencies]
