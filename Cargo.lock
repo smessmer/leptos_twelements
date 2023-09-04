@@ -823,16 +823,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "leptos-twelements"
-version = "0.1.0"
-dependencies = [
- "axum",
- "leptos",
- "leptos_meta",
- "serde",
-]
-
-[[package]]
 name = "leptos_config"
 version = "0.4.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -966,6 +956,16 @@ dependencies = [
  "server_fn",
  "thiserror",
  "tracing",
+]
+
+[[package]]
+name = "leptos_twelements"
+version = "0.0.1"
+dependencies = [
+ "axum",
+ "leptos",
+ "leptos_meta",
+ "serde",
 ]
 
 [[package]]
