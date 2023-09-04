@@ -1,0 +1,12 @@
+{
+  "name": "leptos-twelements",
+  "version": "0.0.1",
+  "description": "TODO",
+  "author": "Sebastian Messmer",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "tw-elements": "^1.0.0-rc.1"
+  },
+  "devDependencies": {}
+}
