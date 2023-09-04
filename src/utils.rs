@@ -86,9 +86,9 @@ impl<T: Clone + 'static> MaybeSignalExt<T> for MaybeSignal<T> {
     }
 }
 
-/// Extension trait adding new methods to `Signal<bool>`.
+/// Extension trait adding new methods to [`Signal<bool>`].
 pub trait SignalBoolExt {
-    /// Inverts a [Signal<bool>] so that it is true when the original signal is false and vice versa.
+    /// Inverts a [`Signal<bool>`] so that it is true when the original signal is false and vice versa.
     fn not(&self, cx: Scope) -> Signal<bool>;
 }
 
@@ -101,7 +101,7 @@ impl<S: SignalGet<bool> + Clone + 'static> SignalBoolExt for S {
 
 /// Extension trait adding new methods to `MaybeSignal<bool>`.
 pub trait MaybeSignalBoolExt {
-    /// Inverts a [MaybeSignal<bool>] so that it is true when the original signal is false and vice versa.
+    /// Inverts a [`MaybeSignal<bool>`] so that it is true when the original signal is false and vice versa.
     fn not(&self, cx: Scope) -> Self;
 }
 

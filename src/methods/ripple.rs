@@ -1,9 +1,9 @@
 use super::super::utils::{HtmlElementAttributeExt, MaybeSignalExt};
 use leptos::{html::ElementDescriptor, *};
 
-/// Add a ripple effect to [Button](super::button::Button) or other components
+/// Add a ripple effect to [Button](crate::components::Button) or other components
 ///
-/// See https://tailwind-elements.com/docs/standard/methods/ripple
+/// See <https://tailwind-elements.com/docs/standard/methods/ripple>
 #[derive(Default, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Ripple {
     pub color: Option<String>,
