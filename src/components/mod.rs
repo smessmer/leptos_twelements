@@ -10,3 +10,6 @@ pub use dropdown::Dropdown;
 
 pub mod forms;
 pub mod navigation;
+
+mod spinner;
+pub use spinner::Spinner;

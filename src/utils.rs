@@ -92,12 +92,20 @@ impl<T: Clone + 'static> MaybeSignalExt<T> for MaybeSignal<T> {
 pub trait SignalBoolExt {
     /// Inverts a [`Signal<bool>`] so that it is true when the original signal is false and vice versa.
     fn not(&self, cx: Scope) -> Signal<bool>;
+    /// ORs a [`Signal<bool>`] with another [`Signal<bool>`] so that the output is true when either of the inputs is true.
+    fn or(&self, cx: Scope, other: impl Into<Signal<bool>>) -> Signal<bool>;
 }
 
 impl<S: SignalGet<bool> + Clone + 'static> SignalBoolExt for S {
     fn not(&self, cx: Scope) -> Signal<bool> {
         let s = self.clone();
         Signal::derive(cx, move || !s.get())
+    }
+
+    fn or(&self, cx: Scope, other: impl Into<Signal<bool>>) -> Signal<bool> {
+        let s = self.clone();
+        let other = other.into();
+        Signal::derive(cx, move || s.get() || other.get())
     }
 }
 
