@@ -83,9 +83,9 @@ impl ButtonStyle {
     }
 }
 
-// TODO on_click
-
-/// A Button component
+/// A Button component.
+///
+/// To capture click events, use the `on:click` event property which will be passed through to the underlying button.
 ///
 /// See [Tailwind Elements: Buttons](https://tailwind-elements.com/docs/standard/components/buttons)
 #[component]
