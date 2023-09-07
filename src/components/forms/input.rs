@@ -96,7 +96,9 @@ pub fn Input<OnChangeFn: Fn(String) + 'static>(
                 id=id.clone()
                 disabled=disabled
                 readonly=readonly
-                prop:value=value
+                prop:value=value.clone()
+                // Setting data-te-input-state-active is a Workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
+                data-te-input-state-active=move || if value.with(|v| v.is_empty()) { None } else { Some("") }
                 on:input=move |ev| {
                     on_change(event_target_value(&ev));
                 }
@@ -107,6 +109,31 @@ pub fn Input<OnChangeFn: Fn(String) + 'static>(
             >
                 {label}
             </label>
+            <InputBorder />
+        </div>
+    }
+}
+
+// TODO The twelements example highlights this border when it's active. We don't do that yet correctly.
+// TODO The border is currently visible through the label text instead of hiding behind it.
+#[component]
+fn InputBorder(cx: Scope) -> impl IntoView {
+    view! {cx,
+        <div class="group flex absolute left-0 top-0 w-full max-w-full h-full text-left pointer-events-none" data-te-input-notch-ref>
+            <div
+                class="pointer-events-none border border-solid box-border bg-transparent transition-all duration-200 ease-linear motion-reduce:transition-none left-0 top-0 h-full w-2 border-r-0 rounded-l-[0.25rem] group-data-[te-input-focused]:border-r-0 group-data-[te-input-state-active]:border-r-0 border-neutral-300 dark:border-neutral-600 group-data-[te-input-focused]:shadow-[-1px_0_0_#3b71ca,_0_1px_0_0_#3b71ca,_0_-1px_0_0_#3b71ca] group-data-[te-input-focused]:border-primary"
+                data-te-input-notch-leading-ref
+                style="width: 9px;">
+            </div>
+            <div
+                class="pointer-events-none border border-solid box-border bg-transparent transition-all duration-200 ease-linear motion-reduce:transition-none grow-0 shrink-0 basis-auto w-auto max-w-[calc(100%-1rem)] h-full border-r-0 border-l-0 group-data-[te-input-focused]:border-x-0 group-data-[te-input-state-active]:border-x-0 group-data-[te-input-focused]:border-t group-data-[te-input-state-active]:border-t group-data-[te-input-focused]:border-solid group-data-[te-input-state-active]:border-solid group-data-[te-input-focused]:border-t-transparent group-data-[te-input-state-active]:border-t-transparent border-neutral-300 dark:border-neutral-600 group-data-[te-input-focused]:shadow-[0_1px_0_0_#3b71ca] group-data-[te-input-focused]:border-primary"
+                data-te-input-notch-middle-ref
+                style="width: 87.2px;">
+            </div>
+            <div
+                class="pointer-events-none border border-solid box-border bg-transparent transition-all duration-200 ease-linear motion-reduce:transition-none grow h-full border-l-0 rounded-r-[0.25rem] group-data-[te-input-focused]:border-l-0 group-data-[te-input-state-active]:border-l-0 border-neutral-300 dark:border-neutral-600 group-data-[te-input-focused]:shadow-[1px_0_0_#3b71ca,_0_-1px_0_0_#3b71ca,_0_1px_0_0_#3b71ca] group-data-[te-input-focused]:border-primary"
+                data-te-input-notch-trailing-ref>
+            </div>
         </div>
     }
 }
