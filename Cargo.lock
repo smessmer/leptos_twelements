@@ -960,7 +960,7 @@ dependencies = [
 
 [[package]]
 name = "leptos_twelements"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "axum",
  "leptos",
