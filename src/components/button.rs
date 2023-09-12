@@ -1,4 +1,5 @@
 use leptos::{html::button, *};
+use leptos_dom::html::script;
 
 use crate::methods::Ripple;
 use crate::utils::HtmlElementAttributeExt;
@@ -110,6 +111,8 @@ pub fn Button(
     /// Whether to add a ripple effect to the button.
     #[prop(into, default = None.into())]
     ripple: MaybeSignal<Option<Ripple>>,
+    // TODO Auto-assign id
+    #[prop(into)] id: String,
     /// Elements displayed in the button
     children: Children,
 ) -> impl IntoView {
@@ -127,10 +130,21 @@ pub fn Button(
     };
     // TODO Unfortunately need to use builder pattern here because of https://github.com/leptos-rs/leptos/issues/1645
     //      Even better though would be this once it's ready: https://github.com/leptos-rs/leptos/pull/1619
-    let mut button = button(cx).attr("type", "button").attr("class", classes);
+    let mut button = button(cx)
+        .attr("type", "button")
+        .attr("id", id.clone())
+        .attr("class", classes);
     button = button.attr_valueless("disabled", disabled);
-    button = Ripple::apply(cx, ripple, button);
     let children = children(cx);
     button = button.child(children);
-    button
+    let button = Ripple::apply(cx, ripple, button, id.clone());
+
+    // TODO init_script is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
+    let init_script = script(cx)
+        .attr("type", "text/javascript")
+        .inner_html(format!(
+            "if (typeof te !== 'undefined') {{ new te.Button(document.getElementById(\"{id}\")); }}"
+        ));
+
+    Fragment::new(vec![button.into_view(cx), init_script.into_view(cx)])
 }

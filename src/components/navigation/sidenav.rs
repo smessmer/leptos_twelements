@@ -1,12 +1,24 @@
 use leptos::*;
+use leptos_dom::html::script;
 
 // TODO Sidenav can so so much more, see https://tailwind-elements.com/docs/standard/navigation/sidenav
 
 #[component]
-pub fn Sidenav(cx: Scope, children: Children) -> impl IntoView {
+pub fn Sidenav(
+    cx: Scope, // TODO Automatically assign id
+    #[prop(into)] id: String,
+    children: Children,
+) -> impl IntoView {
+    // TODO init_script is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
+    let init_script = script(cx)
+        .attr("type", "text/javascript")
+        .inner_html(format!(
+            "if (typeof te !== 'undefined') {{ te.Sidenav.getInstance(document.getElementById(\"{id}\")); }}"
+        ));
     view! {cx,
         <nav
             class="absolute left-0 top-0 z-[1035] h-full w-60 -translate-x-full overflow-hidden bg-white shadow-[0_4px_12px_0_rgba(0,0,0,0.07),_0_2px_4px_rgba(0,0,0,0.05)] data-[te-sidenav-hidden='false']:translate-x-0 dark:bg-zinc-800"
+            id=id
             data-te-sidenav-init
             data-te-sidenav-hidden="false"
             data-te-sidenav-position="absolute"
@@ -15,6 +27,7 @@ pub fn Sidenav(cx: Scope, children: Children) -> impl IntoView {
                 {children(cx)}
             </ul>
         </nav>
+        {init_script}
     }
 }
 

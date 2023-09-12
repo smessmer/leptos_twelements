@@ -1,5 +1,6 @@
 use super::super::utils::{HtmlElementAttributeExt, MaybeSignalExt};
 use leptos::{html::ElementDescriptor, *};
+use leptos_dom::html::script;
 
 /// Add a ripple effect to [Button](crate::components::Button) or other components
 ///
@@ -37,9 +38,11 @@ impl Ripple {
         cx: Scope,
         ripple: impl Into<MaybeSignal<Option<Ripple>>>,
         element: HtmlElement<T>,
-    ) -> HtmlElement<T> {
+        // The id must already be applied as an attribute to `element` before calling this function.
+        id: String,
+    ) -> impl IntoView {
         let ripple = ripple.into();
-        element
+        let element = element
             .attr_valueless(
                 "data-te-ripple-init",
                 ripple.map(cx, |ripple| ripple.is_some()),
@@ -82,6 +85,23 @@ impl Ripple {
                         .and_then(|ripple| ripple.radius)
                         .map(|r| r.to_string())
                 }),
-            )
+            );
+
+        // TODO init_script is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
+        let init_script = move || {
+            if ripple().is_some() {
+                Fragment::new(vec![
+                    script(cx)
+                        .attr("type", "text/javascript")
+                        .inner_html(format!(
+                            "if (typeof te !== 'undefined') {{ new te.Ripple(document.getElementById(\"{id}\")); }}"
+                        )).into_view(cx)
+                    ])
+            } else {
+                Fragment::new(vec![])
+            }
+        };
+
+        Fragment::new(vec![element.into_view(cx), init_script.into_view(cx)])
     }
 }

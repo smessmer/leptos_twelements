@@ -1,4 +1,5 @@
 use leptos::*;
+use leptos_dom::html::script;
 
 use crate::utils::MaybeSignalExt;
 
@@ -85,9 +86,13 @@ pub fn Input<OnChangeFn: Fn(String) + 'static>(
         class
     };
 
-    // init_script is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
+    // TODO init_script is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
     let wrapper_id = format!("input-wrapper-{id}");
-    let init_script = format!("new te.Input(document.getElementById(\"{wrapper_id}\"));");
+    let init_script = script(cx)
+        .attr("type", "text/javascript")
+        .inner_html(format!(
+            "if (typeof te !== 'undefined') {{ new te.Input(document.getElementById(\"{wrapper_id}\")); }}"
+        ));
 
     let id = if id.is_empty() { None } else { Some(id) };
 
@@ -113,9 +118,7 @@ pub fn Input<OnChangeFn: Fn(String) + 'static>(
             >
                 {label}
             </label>
-            <script>
             {init_script}
-            </script>
         </div>
     }
 }
