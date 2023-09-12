@@ -84,13 +84,15 @@ pub fn Input<OnChangeFn: Fn(String) + 'static>(
         }
         class
     };
+
+    // init_script is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
+    let wrapper_id = format!("input-wrapper-{id}");
+    let init_script = format!("new te.Input(document.getElementById(\"{wrapper_id}\"));");
+
     let id = if id.is_empty() { None } else { Some(id) };
 
-    // Setting is_active is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
-    let is_active = value.map(cx, move |v| if v.is_empty() { None } else { Some("") });
-
     view! {cx,
-        <div class="relative mb-3" data-te-input-wrapper-init>
+        <div class="relative mb-3" id=wrapper_id data-te-input-wrapper-init>
             <input
                 type=input_type.map(cx, InputType::html_attrib)
                 class=class
@@ -100,7 +102,7 @@ pub fn Input<OnChangeFn: Fn(String) + 'static>(
                 disabled=disabled
                 readonly=readonly
                 prop:value=value
-                data-te-input-state-active=is_active
+                // data-te-input-state-active=is_active
                 on:input=move |ev| {
                     on_change(event_target_value(&ev));
                 }
@@ -111,38 +113,9 @@ pub fn Input<OnChangeFn: Fn(String) + 'static>(
             >
                 {label}
             </label>
-            <InputBorder is_active=is_active />
-        </div>
-    }
-}
-
-// TODO This border is supposedly set up automatically by twelements but we have to do it manually because twelements doesn't correctly bind to it.
-//      See https://github.com/mdbootstrap/Tailwind-Elements/issues/1743 and maybe https://github.com/mdbootstrap/Tailwind-Elements/issues/1891 and maybe https://github.com/mdbootstrap/Tailwind-Elements/issues/1865 with https://github.com/mdbootstrap/Tailwind-Elements/discussions/1864
-//      This currently shows up as follows:
-//        - We just take off a fixed amount of the top border when the label is up there instead of dynamically taking of the part taken by the label
-//        - data-te-input-focused is not applied to the input field which means we don't highlight it as antipic
-#[component]
-fn InputBorder(
-    cx: Scope,
-    // Setting is_active is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
-    is_active: MaybeSignal<Option<&'static str>>,
-) -> impl IntoView {
-    view! {cx,
-        <div class="group flex absolute left-0 top-0 w-full max-w-full h-full text-left pointer-events-none" data-te-input-notch-ref data-te-input-state-active=is_active>
-            <div
-                class="pointer-events-none border border-solid box-border bg-transparent transition-all duration-200 ease-linear motion-reduce:transition-none left-0 top-0 h-full w-2 border-r-0 rounded-l-[0.25rem] group-data-[te-input-focused]:border-r-0 group-data-[te-input-state-active]:border-r-0 border-neutral-300 dark:border-neutral-600 group-data-[te-input-focused]:shadow-[-1px_0_0_#3b71ca,_0_1px_0_0_#3b71ca,_0_-1px_0_0_#3b71ca] group-data-[te-input-focused]:border-primary"
-                data-te-input-notch-leading-ref
-                style="width: 9px;">
-            </div>
-            <div
-                class="pointer-events-none border border-solid box-border bg-transparent transition-all duration-200 ease-linear motion-reduce:transition-none grow-0 shrink-0 basis-auto w-auto max-w-[calc(100%-1rem)] h-full border-r-0 border-l-0 group-data-[te-input-focused]:border-x-0 group-data-[te-input-state-active]:border-x-0 group-data-[te-input-focused]:border-t group-data-[te-input-state-active]:border-t group-data-[te-input-focused]:border-solid group-data-[te-input-state-active]:border-solid group-data-[te-input-focused]:border-t-transparent group-data-[te-input-state-active]:border-t-transparent border-neutral-300 dark:border-neutral-600 group-data-[te-input-focused]:shadow-[0_1px_0_0_#3b71ca] group-data-[te-input-focused]:border-primary"
-                data-te-input-notch-middle-ref
-                style="width: 87.2px;">
-            </div>
-            <div
-                class="pointer-events-none border border-solid box-border bg-transparent transition-all duration-200 ease-linear motion-reduce:transition-none grow h-full border-l-0 rounded-r-[0.25rem] group-data-[te-input-focused]:border-l-0 group-data-[te-input-state-active]:border-l-0 border-neutral-300 dark:border-neutral-600 group-data-[te-input-focused]:shadow-[1px_0_0_#3b71ca,_0_-1px_0_0_#3b71ca,_0_1px_0_0_#3b71ca] group-data-[te-input-focused]:border-primary"
-                data-te-input-notch-trailing-ref>
-            </div>
+            <script>
+            {init_script}
+            </script>
         </div>
     }
 }
