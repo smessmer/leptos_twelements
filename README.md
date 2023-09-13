@@ -1,7 +1,5 @@
 [![Latest Version](https://img.shields.io/crates/v/leptos_twelements.svg)](https://crates.io/crates/leptos_twelements)
 [![docs.rs](https://docs.rs/leptos_twelements/badge.svg)](https://docs.rs/leptos_twelements)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/smessmer/leptos_twelements/blob/master/LICENSE-MIT)
-[![License](https://img.shields.io/badge/license-APACHE-blue.svg)](https://github.com/smessmer/leptos_twelements/blob/master/LICENSE-APACHE)
 [![unsafe forbidden](https://img.shields.io/badge/unsafe-forbidden-success.svg)](https://github.com/rust-secure-code/safety-dance/)
 
 leptos-twelements
