@@ -5,7 +5,9 @@ use leptos_dom::html::script;
 
 #[component]
 pub fn Sidenav(
-    cx: Scope, // TODO Automatically assign id
+    cx: Scope,
+    #[prop(into)] content_id: String,
+    // TODO Automatically assign id
     #[prop(into)] id: String,
     children: Children,
 ) -> impl IntoView {
@@ -17,12 +19,12 @@ pub fn Sidenav(
         ));
     view! {cx,
         <nav
-            class="absolute left-0 top-0 z-[1035] h-full w-60 -translate-x-full overflow-hidden bg-white shadow-[0_4px_12px_0_rgba(0,0,0,0.07),_0_2px_4px_rgba(0,0,0,0.05)] data-[te-sidenav-hidden='false']:translate-x-0 dark:bg-zinc-800"
+            class="fixed left-0 top-0 z-[1035] h-screen w-60 -translate-x-full overflow-hidden bg-white shadow-[0_4px_12px_0_rgba(0,0,0,0.07),_0_2px_4px_rgba(0,0,0,0.05)] data-[te-sidenav-hidden='false']:translate-x-0 dark:bg-zinc-800"
             id=id
             data-te-sidenav-init
             data-te-sidenav-hidden="false"
-            data-te-sidenav-position="absolute"
-            data-te-sidenav-mode="side">
+            data-te-sidenav-mode="side"
+            data-te-sidenav-content=format!("#{content_id}")>
             <ul class="relative m-0 list-none px-[0.2rem]" data-te-sidenav-menu-ref>
                 {children(cx)}
             </ul>
