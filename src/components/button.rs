@@ -1,12 +1,8 @@
-use leptos::{
-    html::{button, Button},
-    *,
-};
+use leptos::{html::Button, *};
 use wasm_bindgen::prelude::wasm_bindgen;
 use web_sys::HtmlButtonElement;
 
 use crate::methods::Ripple;
-use crate::utils::HtmlElementAttributeExt;
 
 /// [ButtonStyle] influences the look&feel of a button.
 ///
