@@ -11,7 +11,8 @@ pub fn Dropdown() -> impl IntoView {
     let element_ref: NodeRef<Div> = create_node_ref();
     create_effect(move |_| {
         if let Some(element) = element_ref() {
-            leptos_tailwind_elements_init_dropdown(&element);
+            let jsdropdown = JsDropdown::new(&element);
+            on_cleanup(move || jsdropdown.dispose());
         }
     });
 
@@ -85,9 +86,15 @@ fn DropdownCaret() -> impl IntoView {
     }
 }
 
-#[wasm_bindgen(
-    inline_js = "export function leptos_tailwind_elements_init_dropdown(e) {new te.Dropdown(e);}"
-)]
+#[wasm_bindgen]
 extern "C" {
-    fn leptos_tailwind_elements_init_dropdown(e: &HtmlDivElement);
+    #[wasm_bindgen(js_namespace = te, js_name = Dropdown)]
+    type JsDropdown;
+
+    // TODO Dropdown constructor can take some options, see https://tailwind-elements.com/docs/standard/components/dropdown/#docsTabsAPI
+    #[wasm_bindgen(constructor, js_namespace = te, js_class = Dropdown, final)]
+    fn new(e: &HtmlDivElement) -> JsDropdown;
+
+    #[wasm_bindgen(method, js_namespace = te, js_class = Dropdown, final)]
+    fn dispose(this: &JsDropdown);
 }

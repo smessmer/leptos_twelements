@@ -104,11 +104,11 @@ extern "C" {
     #[wasm_bindgen(js_namespace = te, js_name = Ripple)]
     type JsRipple;
 
-    #[wasm_bindgen(constructor, js_namespace = te, js_class = Ripple)]
+    #[wasm_bindgen(constructor, js_namespace = te, js_class = Ripple, final)]
     // TODO Pass JsRippleOptions directly, see https://github.com/cloudflare/serde-wasm-bindgen/issues/56
     fn new(e: &HtmlElement, options: JsValue) -> JsRipple;
 
-    #[wasm_bindgen(method, js_namespace = te, js_class = Ripple)]
+    #[wasm_bindgen(method, js_namespace = te, js_class = Ripple, final)]
     fn dispose(this: &JsRipple);
 }
 

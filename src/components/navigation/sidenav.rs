@@ -1,5 +1,6 @@
 use leptos::{html::Nav, *};
-use wasm_bindgen::prelude::wasm_bindgen;
+use serde::{Deserialize, Serialize};
+use wasm_bindgen::prelude::{wasm_bindgen, JsValue};
 use web_sys::HtmlElement;
 
 // TODO Sidenav can so so much more, see https://tailwind-elements.com/docs/standard/navigation/sidenav
@@ -10,17 +11,24 @@ pub fn Sidenav(#[prop(into)] content_id: String, children: Children) -> impl Int
     let element_ref: NodeRef<Nav> = create_node_ref();
     create_effect(move |_| {
         if let Some(element) = element_ref() {
-            leptos_tailwind_elements_init_nav(&element);
+            let options = JsSidenavOptions {
+                hidden: false,
+                mode: "side".to_string(),
+                content: format!("#{}", content_id),
+            };
+            let jssidenav =
+                JsSidenav::new(&element, serde_wasm_bindgen::to_value(&options).unwrap());
+            on_cleanup(move || jssidenav.dispose());
         }
     });
 
     view! {
         <nav
-            class="fixed left-0 top-0 z-[1035] h-screen w-60 -translate-x-full overflow-hidden bg-white shadow-[0_4px_12px_0_rgba(0,0,0,0.07),_0_2px_4px_rgba(0,0,0,0.05)] data-[te-sidenav-hidden='false']:translate-x-0 dark:bg-zinc-800"
-            data-te-sidenav-init
+            ref=element_ref
+            class="absolute left-0 top-0 z-[1035] h-screen w-60 -translate-x-full overflow-hidden bg-white shadow-[0_4px_12px_0_rgba(0,0,0,0.07),_0_2px_4px_rgba(0,0,0,0.05)] data-[te-sidenav-hidden='false']:translate-x-0 dark:bg-zinc-800"
+            // TODO Not sure why this additional "data-te-sidenav-hidden" is needed, the JavaScript should initialize it correctly.
             data-te-sidenav-hidden="false"
-            data-te-sidenav-mode="side"
-            data-te-sidenav-content=format!("#{content_id}")>
+            >
             <ul class="relative m-0 list-none px-[0.2rem]" data-te-sidenav-menu-ref>
                 {children()}
             </ul>
@@ -42,11 +50,27 @@ pub fn SidenavItem(#[prop(into)] href: MaybeSignal<String>, children: Children) 
     }
 }
 
-// TODO Is this initialization really necessary? Other Tailwind Elements seem to use `new`
-//      instead of `getInstance`, so maybe it is not necessary?
-#[wasm_bindgen(
-    inline_js = "export function leptos_tailwind_elements_init_nav(e) {te.Sidenav.getInstance(e);}"
-)]
+#[wasm_bindgen]
 extern "C" {
-    fn leptos_tailwind_elements_init_nav(e: &HtmlElement);
+    #[wasm_bindgen(js_namespace = te, js_name = Sidenav)]
+    type JsSidenav;
+
+    #[wasm_bindgen(constructor, js_namespace = te, js_class = Sidenav, final)]
+    fn new(e: &HtmlElement, options: JsValue) -> JsSidenav;
+
+    #[wasm_bindgen(method, js_namespace = te, js_class = Sidenav, final)]
+    fn dispose(this: &JsSidenav);
+}
+
+#[derive(Serialize, Deserialize)]
+struct JsSidenavOptions {
+    #[serde(rename = "sidenavHidden")]
+    hidden: bool,
+
+    #[serde(rename = "sidenavMode")]
+    mode: String,
+
+    #[serde(rename = "sidenavContent")]
+    content: String,
+    // TODO There are more options, see https://tailwind-elements.com/docs/standard/navigation/sidenav/#docsTabsAPI
 }

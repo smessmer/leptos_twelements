@@ -91,6 +91,8 @@ impl ButtonStyle {
     }
 }
 
+// TODO Allow buttons with `href` instead of `on:click`
+
 /// A Button component.
 ///
 /// To capture click events, use the `on:click` event property which will be passed through to the underlying button.
@@ -130,7 +132,8 @@ pub fn Button(
     // TODO This explicit initialization is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
     create_effect(move |_| {
         if let Some(element) = button_ref() {
-            leptos_tailwind_elements_init_button(&element);
+            let jsbutton = JsButton::new(&element);
+            on_cleanup(move || jsbutton.dispose());
         }
     });
 
@@ -148,9 +151,14 @@ pub fn Button(
     }
 }
 
-#[wasm_bindgen(
-    inline_js = "export function leptos_tailwind_elements_init_button(e) {new te.Button(e);}"
-)]
+#[wasm_bindgen]
 extern "C" {
-    fn leptos_tailwind_elements_init_button(e: &HtmlButtonElement);
+    #[wasm_bindgen(js_namespace = te, js_name = Button)]
+    type JsButton;
+
+    #[wasm_bindgen(constructor, js_namespace = te, js_class = Button, final)]
+    fn new(e: &HtmlButtonElement) -> JsButton;
+
+    #[wasm_bindgen(method, js_namespace = te, js_class = Button, final)]
+    fn dispose(this: &JsButton);
 }

@@ -90,14 +90,15 @@ pub fn Input<OnChangeFn: Fn(String) + 'static>(
     let element_ref: NodeRef<Div> = create_node_ref();
     create_effect(move |_| {
         if let Some(element) = element_ref() {
-            leptos_tailwind_elements_input_input(&element);
+            let jsinput = JsInput::new(&element);
+            on_cleanup(move || jsinput.dispose());
         }
     });
 
     let id = if id.is_empty() { None } else { Some(id) };
 
     view! {
-        <div ref=element_ref class="relative mb-3" data-te-input-wrapper-init>
+        <div ref=element_ref class="relative mb-3">
             <input
                 type=input_type.map(InputType::html_attrib)
                 class=class
@@ -121,9 +122,15 @@ pub fn Input<OnChangeFn: Fn(String) + 'static>(
     }
 }
 
-#[wasm_bindgen(
-    inline_js = "export function leptos_tailwind_elements_input_input(e) {new te.Input(e);}"
-)]
+#[wasm_bindgen]
 extern "C" {
-    fn leptos_tailwind_elements_input_input(e: &HtmlDivElement);
+    #[wasm_bindgen(js_namespace = te, js_name = Input)]
+    type JsInput;
+
+    // TODO Input constructor can take some options, see https://tailwind-elements.com/docs/standard/forms/inputs/#docsTabsAPI
+    #[wasm_bindgen(constructor, js_namespace = te, js_class = Input, final)]
+    fn new(e: &HtmlDivElement) -> JsInput;
+
+    #[wasm_bindgen(method, js_namespace = te, js_class = Input, final)]
+    fn dispose(this: &JsInput);
 }
