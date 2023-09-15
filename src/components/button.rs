@@ -1,5 +1,9 @@
-use leptos::{html::button, *};
-use leptos_dom::html::script;
+use leptos::{
+    html::{button, Button},
+    *,
+};
+use wasm_bindgen::prelude::wasm_bindgen;
+use web_sys::HtmlButtonElement;
 
 use crate::methods::Ripple;
 use crate::utils::HtmlElementAttributeExt;
@@ -110,8 +114,6 @@ pub fn Button(
     /// Whether to add a ripple effect to the button.
     #[prop(into, default = None.into())]
     ripple: MaybeSignal<Option<Ripple>>,
-    // TODO Auto-assign id
-    #[prop(into)] id: String,
     /// Elements displayed in the button
     children: Children,
 ) -> impl IntoView {
@@ -127,21 +129,32 @@ pub fn Button(
         }
         classes
     };
-    // TODO Unfortunately need to use builder pattern here because of https://github.com/leptos-rs/leptos/issues/1645
-    //      Even better though would be this once it's ready: https://github.com/leptos-rs/leptos/pull/1619
-    let mut button = button()
-        .attr("type", "button")
-        .attr("id", id.clone())
-        .attr("class", classes);
-    button = button.attr_valueless("disabled", disabled);
-    let children = children();
-    button = button.child(children);
-    let button = Ripple::apply(ripple, button, id.clone());
 
-    // TODO init_script is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
-    let init_script = script().attr("type", "text/javascript").inner_html(format!(
-        "if (typeof te !== 'undefined') {{ new te.Button(document.getElementById(\"{id}\")); }}"
-    ));
+    let button_ref: NodeRef<Button> = create_node_ref();
+    // TODO This explicit initialization is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
+    create_effect(move |_| {
+        if let Some(element) = button_ref() {
+            leptos_tailwind_elements_init_button(&element);
+        }
+    });
 
-    Fragment::new(vec![button.into_view(), init_script.into_view()])
+    Ripple::apply(button_ref, ripple);
+
+    view! {
+        <button
+            ref=button_ref
+            type="button"
+            class=classes
+            disabled=disabled
+        >
+            {children()}
+        </button>
+    }
+}
+
+#[wasm_bindgen(
+    inline_js = "export function leptos_tailwind_elements_init_button(e) {new te.Button(e);}"
+)]
+extern "C" {
+    fn leptos_tailwind_elements_init_button(e: &HtmlButtonElement);
 }

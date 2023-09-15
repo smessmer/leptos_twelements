@@ -1,7 +1,6 @@
 //! A UI component library for [Leptos](https://leptos.dev/), based on [Tailwind Elements](https://tailwind-elements.com/).
 //! See [README](https://github.com/smessmer/leptos_twelements/README.md)
 
-#![forbid(unsafe_code)]
 #![deny(missing_docs)]
 
 pub mod components;

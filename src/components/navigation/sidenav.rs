@@ -1,25 +1,22 @@
-use leptos::*;
-use leptos_dom::html::script;
+use leptos::{html::Nav, *};
+use wasm_bindgen::prelude::wasm_bindgen;
+use web_sys::HtmlElement;
 
 // TODO Sidenav can so so much more, see https://tailwind-elements.com/docs/standard/navigation/sidenav
 
 #[component]
-pub fn Sidenav(
-    #[prop(into)] content_id: String,
-    // TODO Automatically assign id
-    #[prop(into)] id: String,
-    children: Children,
-) -> impl IntoView {
-    // TODO init_script is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
-    let init_script = script()
-        .attr("type", "text/javascript")
-        .inner_html(format!(
-            "if (typeof te !== 'undefined') {{ te.Sidenav.getInstance(document.getElementById(\"{id}\")); }}"
-        ));
+pub fn Sidenav(#[prop(into)] content_id: String, children: Children) -> impl IntoView {
+    // TODO This explicit initialization is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
+    let element_ref: NodeRef<Nav> = create_node_ref();
+    create_effect(move |_| {
+        if let Some(element) = element_ref() {
+            leptos_tailwind_elements_init_nav(&element);
+        }
+    });
+
     view! {
         <nav
             class="fixed left-0 top-0 z-[1035] h-screen w-60 -translate-x-full overflow-hidden bg-white shadow-[0_4px_12px_0_rgba(0,0,0,0.07),_0_2px_4px_rgba(0,0,0,0.05)] data-[te-sidenav-hidden='false']:translate-x-0 dark:bg-zinc-800"
-            id=id
             data-te-sidenav-init
             data-te-sidenav-hidden="false"
             data-te-sidenav-mode="side"
@@ -28,7 +25,6 @@ pub fn Sidenav(
                 {children()}
             </ul>
         </nav>
-        {init_script}
     }
 }
 
@@ -44,4 +40,13 @@ pub fn SidenavItem(#[prop(into)] href: MaybeSignal<String>, children: Children) 
             </a>
         </li>
     }
+}
+
+// TODO Is this initialization really necessary? Other Tailwind Elements seem to use `new`
+//      instead of `getInstance`, so maybe it is not necessary?
+#[wasm_bindgen(
+    inline_js = "export function leptos_tailwind_elements_init_nav(e) {te.Sidenav.getInstance(e);}"
+)]
+extern "C" {
+    fn leptos_tailwind_elements_init_nav(e: &HtmlElement);
 }

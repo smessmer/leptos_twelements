@@ -1,6 +1,7 @@
-use super::super::utils::{HtmlElementAttributeExt, MaybeSignalExt};
 use leptos::{html::ElementDescriptor, *};
-use leptos_dom::html::script;
+use serde::{Deserialize, Serialize};
+use wasm_bindgen::prelude::{wasm_bindgen, JsValue};
+use web_sys::HtmlElement;
 
 /// Add a ripple effect to [Button](crate::components::Button) or other components
 ///
@@ -34,66 +35,100 @@ pub struct Ripple {
 }
 
 impl Ripple {
-    pub(crate) fn apply<T: ElementDescriptor + 'static>(
+    /// Apply a ripple effect to a node given by a [NodeRef].
+    ///
+    /// This works with reactive ripples. That means:
+    /// - If the `ripple` signal passed as an attribute becomes `Some, then the ripple effect will
+    ///   automatically be applied to the HTML element using that [NodeRef].
+    /// - If the `ripple` signal passed as an attribute becomes `None`, then the ripple effect will
+    ///   automatically be removed from the HTML element using that [NodeRef].
+    ///
+    /// Example
+    /// -------
+    /// ```
+    /// use leptos::{html::Button, *};
+    /// use leptos_twelements::methods::Ripple;
+    ///
+    /// #[component]
+    /// pub fn MyButton() -> impl IntoView {
+    ///    let ripple = Ripple::default();
+    ///    let button_ref = Ripple::apply(Some(ripple));
+    ///    view!{
+    ///       <Button ref=button_ref>{"Click me"}</Button>
+    ///    }
+    /// }
+    /// ```
+    pub(crate) fn apply<T: ElementDescriptor + Clone + 'static>(
+        element_ref: NodeRef<T>,
         ripple: impl Into<MaybeSignal<Option<Ripple>>>,
-        element: HtmlElement<T>,
-        // The id must already be applied as an attribute to `element` before calling this function.
-        id: String,
-    ) -> impl IntoView {
-        let ripple = ripple.into();
-        let element = element
-            .attr_valueless("data-te-ripple-init", ripple.map(|ripple| ripple.is_some()))
-            .attr(
-                "data-te-ripple-color",
-                ripple.map(|ripple| ripple.as_ref().and_then(|ripple| ripple.color.clone())),
-            )
-            .attr(
-                "data-te-ripple-duration",
-                ripple.map(|ripple| ripple.as_ref().and_then(|ripple| ripple.duration.clone())),
-            )
-            .attr_bool(
-                "data-te-ripple-centered",
-                ripple.map(|ripple| {
-                    ripple
-                        .as_ref()
-                        .map(|ripple| ripple.centered)
-                        .unwrap_or(false)
-                }),
-            )
-            .attr_bool(
-                "data-te-ripple-unbound",
-                ripple.map(|ripple| {
-                    ripple
-                        .as_ref()
-                        .map(|ripple| ripple.unbound)
-                        .unwrap_or(false)
-                }),
-            )
-            .attr(
-                "data-te-ripple-radius",
-                ripple.map(|ripple| {
-                    ripple
-                        .as_ref()
-                        .and_then(|ripple| ripple.radius)
-                        .map(|r| r.to_string())
-                }),
-            );
+    ) {
+        let ripple: MaybeSignal<Option<Ripple>> = ripple.into();
 
-        // TODO init_script is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
-        let init_script = move || {
-            if ripple().is_some() {
-                Fragment::new(vec![
-                    script()
-                        .attr("type", "text/javascript")
-                        .inner_html(format!(
-                            "if (typeof te !== 'undefined') {{ new te.Ripple(document.getElementById(\"{id}\")); }}"
-                        )).into_view()
-                    ])
-            } else {
-                Fragment::new(vec![])
+        create_effect(move |ripple_js_object: Option<Option<JsRipple>>| {
+            // If there's any previous ripple set up, first dispose it
+            if let Some(Some(ripple_js_object)) = ripple_js_object {
+                // TODO Using the button after disposing an existing ripple
+                //      currently causes Tailwind Elements to log an error.
+                ripple_js_object.dispose();
             }
-        };
 
-        Fragment::new(vec![element.into_view(), init_script.into_view()])
+            if let Some(element) = element_ref() {
+                ripple.with(|ripple| {
+                    if let Some(ripple) = ripple {
+                        let options = serde_wasm_bindgen::to_value(&ripple.options()).unwrap();
+                        let ripple = JsRipple::new(&element.into_any(), options);
+                        Some(ripple)
+                    } else {
+                        None
+                    }
+                })
+            } else {
+                None
+            }
+        });
     }
+
+    fn options(&self) -> JsRippleOptions {
+        JsRippleOptions {
+            color: self.color.clone(),
+            duration: self.duration.clone(),
+            centered: self.centered,
+            unbound: self.unbound,
+            radius: self.radius,
+        }
+    }
+}
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = te, js_name = Ripple)]
+    type JsRipple;
+
+    #[wasm_bindgen(constructor, js_namespace = te, js_class = Ripple)]
+    // TODO Pass JsRippleOptions directly, see https://github.com/cloudflare/serde-wasm-bindgen/issues/56
+    fn new(e: &HtmlElement, options: JsValue) -> JsRipple;
+
+    #[wasm_bindgen(method, js_namespace = te, js_class = Ripple)]
+    fn dispose(this: &JsRipple);
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct JsRippleOptions {
+    #[serde(rename = "rippleColor")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    color: Option<String>,
+
+    #[serde(rename = "rippleDuration")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    duration: Option<String>,
+
+    #[serde(rename = "rippleCentered")]
+    centered: bool,
+
+    #[serde(rename = "rippleUnbound")]
+    unbound: bool,
+
+    #[serde(rename = "rippleRadius")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    radius: Option<u32>,
 }

@@ -1,21 +1,22 @@
-use leptos::*;
-use leptos_dom::html::script;
+use leptos::{html::Div, *};
+use wasm_bindgen::prelude::wasm_bindgen;
+use web_sys::HtmlDivElement;
 
 /// A Dropdown component
 ///
 /// See [Tailwind Elements: Dropdown](https://tailwind-elements.com/docs/standard/components/dropdown)
 #[component]
-pub fn Dropdown(
-    // Auto-assign id
-    #[prop(into)] id: String,
-) -> impl IntoView {
-    // TODO init_script is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
-    let init_script = script().attr("type", "text/javascript").inner_html(format!(
-        "if (typeof te !== 'undefined') {{ new te.Dropdown(document.getElementById(\"{id}\")); }}"
-    ));
+pub fn Dropdown() -> impl IntoView {
+    // TODO This explicit initialization is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
+    let element_ref: NodeRef<Div> = create_node_ref();
+    create_effect(move |_| {
+        if let Some(element) = element_ref() {
+            leptos_tailwind_elements_init_dropdown(&element);
+        }
+    });
 
     view! {
-        <div class="relative" data-te-dropdown-ref id=id.clone()>
+        <div ref=element_ref class="relative" data-te-dropdown-ref>
             <button
                 class="flex items-center whitespace-nowrap rounded bg-primary px-6 pb-2 pt-2.5 text-xs font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_#3b71ca] transition duration-150 ease-in-out hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] motion-reduce:transition-none dark:shadow-[0_4px_9px_-4px_rgba(59,113,202,0.5)] dark:hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)]"
                 type="button"
@@ -64,7 +65,6 @@ pub fn Dropdown(
         </li>
             </ul>
         </div>
-        {init_script}
     }
 }
 
@@ -83,4 +83,11 @@ fn DropdownCaret() -> impl IntoView {
             />
         </svg>
     }
+}
+
+#[wasm_bindgen(
+    inline_js = "export function leptos_tailwind_elements_init_dropdown(e) {new te.Dropdown(e);}"
+)]
+extern "C" {
+    fn leptos_tailwind_elements_init_dropdown(e: &HtmlDivElement);
 }

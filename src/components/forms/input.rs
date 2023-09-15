@@ -1,5 +1,6 @@
-use leptos::*;
-use leptos_dom::html::script;
+use leptos::{html::Div, *};
+use wasm_bindgen::prelude::wasm_bindgen;
+use web_sys::HtmlDivElement;
 
 use crate::utils::MaybeSignalExt;
 
@@ -85,18 +86,18 @@ pub fn Input<OnChangeFn: Fn(String) + 'static>(
         class
     };
 
-    // TODO init_script is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
-    let wrapper_id = format!("input-wrapper-{id}");
-    let init_script = script()
-        .attr("type", "text/javascript")
-        .inner_html(format!(
-            "if (typeof te !== 'undefined') {{ new te.Input(document.getElementById(\"{wrapper_id}\")); }}"
-        ));
+    // TODO This explicit initialization is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
+    let element_ref: NodeRef<Div> = create_node_ref();
+    create_effect(move |_| {
+        if let Some(element) = element_ref() {
+            leptos_tailwind_elements_input_input(&element);
+        }
+    });
 
     let id = if id.is_empty() { None } else { Some(id) };
 
     view! {
-        <div class="relative mb-3" id=wrapper_id data-te-input-wrapper-init>
+        <div ref=element_ref class="relative mb-3" data-te-input-wrapper-init>
             <input
                 type=input_type.map(InputType::html_attrib)
                 class=class
@@ -106,7 +107,6 @@ pub fn Input<OnChangeFn: Fn(String) + 'static>(
                 disabled=disabled
                 readonly=readonly
                 prop:value=value
-                // data-te-input-state-active=is_active
                 on:input=move |ev| {
                     on_change(event_target_value(&ev));
                 }
@@ -117,7 +117,13 @@ pub fn Input<OnChangeFn: Fn(String) + 'static>(
             >
                 {label}
             </label>
-            {init_script}
         </div>
     }
+}
+
+#[wasm_bindgen(
+    inline_js = "export function leptos_tailwind_elements_input_input(e) {new te.Input(e);}"
+)]
+extern "C" {
+    fn leptos_tailwind_elements_input_input(e: &HtmlDivElement);
 }
