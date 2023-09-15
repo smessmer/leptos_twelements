@@ -98,7 +98,6 @@ impl ButtonStyle {
 /// See [Tailwind Elements: Buttons](https://tailwind-elements.com/docs/standard/components/buttons)
 #[component]
 pub fn Button(
-    cx: Scope,
     /// The style of the button. See [ButtonStyle].
     #[prop(into)]
     style: MaybeSignal<ButtonStyle>,
@@ -130,21 +129,19 @@ pub fn Button(
     };
     // TODO Unfortunately need to use builder pattern here because of https://github.com/leptos-rs/leptos/issues/1645
     //      Even better though would be this once it's ready: https://github.com/leptos-rs/leptos/pull/1619
-    let mut button = button(cx)
+    let mut button = button()
         .attr("type", "button")
         .attr("id", id.clone())
         .attr("class", classes);
     button = button.attr_valueless("disabled", disabled);
-    let children = children(cx);
+    let children = children();
     button = button.child(children);
-    let button = Ripple::apply(cx, ripple, button, id.clone());
+    let button = Ripple::apply(ripple, button, id.clone());
 
     // TODO init_script is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
-    let init_script = script(cx)
-        .attr("type", "text/javascript")
-        .inner_html(format!(
-            "if (typeof te !== 'undefined') {{ new te.Button(document.getElementById(\"{id}\")); }}"
-        ));
+    let init_script = script().attr("type", "text/javascript").inner_html(format!(
+        "if (typeof te !== 'undefined') {{ new te.Button(document.getElementById(\"{id}\")); }}"
+    ));
 
-    Fragment::new(vec![button.into_view(cx), init_script.into_view(cx)])
+    Fragment::new(vec![button.into_view(), init_script.into_view()])
 }

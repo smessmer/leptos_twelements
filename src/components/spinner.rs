@@ -6,8 +6,8 @@ use leptos::*;
 ///
 /// See [Tailwind Elements: Spinners](https://tailwind-elements.com/docs/standard/components/spinners/)
 #[component]
-pub fn Spinner(cx: Scope) -> impl IntoView {
-    view! {cx,
+pub fn Spinner() -> impl IntoView {
+    view! {
     <div
         class="inline-block h-4 w-4 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
         role="status"

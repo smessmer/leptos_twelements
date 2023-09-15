@@ -35,7 +35,6 @@ pub struct Ripple {
 
 impl Ripple {
     pub(crate) fn apply<T: ElementDescriptor + 'static>(
-        cx: Scope,
         ripple: impl Into<MaybeSignal<Option<Ripple>>>,
         element: HtmlElement<T>,
         // The id must already be applied as an attribute to `element` before calling this function.
@@ -43,25 +42,18 @@ impl Ripple {
     ) -> impl IntoView {
         let ripple = ripple.into();
         let element = element
-            .attr_valueless(
-                "data-te-ripple-init",
-                ripple.map(cx, |ripple| ripple.is_some()),
-            )
+            .attr_valueless("data-te-ripple-init", ripple.map(|ripple| ripple.is_some()))
             .attr(
                 "data-te-ripple-color",
-                ripple.map(cx, |ripple| {
-                    ripple.as_ref().and_then(|ripple| ripple.color.clone())
-                }),
+                ripple.map(|ripple| ripple.as_ref().and_then(|ripple| ripple.color.clone())),
             )
             .attr(
                 "data-te-ripple-duration",
-                ripple.map(cx, |ripple| {
-                    ripple.as_ref().and_then(|ripple| ripple.duration.clone())
-                }),
+                ripple.map(|ripple| ripple.as_ref().and_then(|ripple| ripple.duration.clone())),
             )
             .attr_bool(
                 "data-te-ripple-centered",
-                ripple.map(cx, |ripple| {
+                ripple.map(|ripple| {
                     ripple
                         .as_ref()
                         .map(|ripple| ripple.centered)
@@ -70,7 +62,7 @@ impl Ripple {
             )
             .attr_bool(
                 "data-te-ripple-unbound",
-                ripple.map(cx, |ripple| {
+                ripple.map(|ripple| {
                     ripple
                         .as_ref()
                         .map(|ripple| ripple.unbound)
@@ -79,7 +71,7 @@ impl Ripple {
             )
             .attr(
                 "data-te-ripple-radius",
-                ripple.map(cx, |ripple| {
+                ripple.map(|ripple| {
                     ripple
                         .as_ref()
                         .and_then(|ripple| ripple.radius)
@@ -91,17 +83,17 @@ impl Ripple {
         let init_script = move || {
             if ripple().is_some() {
                 Fragment::new(vec![
-                    script(cx)
+                    script()
                         .attr("type", "text/javascript")
                         .inner_html(format!(
                             "if (typeof te !== 'undefined') {{ new te.Ripple(document.getElementById(\"{id}\")); }}"
-                        )).into_view(cx)
+                        )).into_view()
                     ])
             } else {
                 Fragment::new(vec![])
             }
         };
 
-        Fragment::new(vec![element.into_view(cx), init_script.into_view(cx)])
+        Fragment::new(vec![element.into_view(), init_script.into_view()])
     }
 }

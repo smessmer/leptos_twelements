@@ -49,7 +49,6 @@ impl InputType {
 /// See [Tailwind Elements: Inputs](https://tailwind-elements.com/docs/standard/forms/inputs)
 #[component]
 pub fn Input<OnChangeFn: Fn(String) + 'static>(
-    cx: Scope,
     /// This signal is read to show the current content of the input field.
     /// Whenever this signal changes, the input field is updated.
     /// But note that the input field can also be edited by the user and if the `on_change` function doesn't
@@ -88,7 +87,7 @@ pub fn Input<OnChangeFn: Fn(String) + 'static>(
 
     // TODO init_script is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
     let wrapper_id = format!("input-wrapper-{id}");
-    let init_script = script(cx)
+    let init_script = script()
         .attr("type", "text/javascript")
         .inner_html(format!(
             "if (typeof te !== 'undefined') {{ new te.Input(document.getElementById(\"{wrapper_id}\")); }}"
@@ -96,10 +95,10 @@ pub fn Input<OnChangeFn: Fn(String) + 'static>(
 
     let id = if id.is_empty() { None } else { Some(id) };
 
-    view! {cx,
+    view! {
         <div class="relative mb-3" id=wrapper_id data-te-input-wrapper-init>
             <input
-                type=input_type.map(cx, InputType::html_attrib)
+                type=input_type.map(InputType::html_attrib)
                 class=class
                 placeholder=label.clone()
                 aria-label=label.clone()

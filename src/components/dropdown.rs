@@ -6,17 +6,15 @@ use leptos_dom::html::script;
 /// See [Tailwind Elements: Dropdown](https://tailwind-elements.com/docs/standard/components/dropdown)
 #[component]
 pub fn Dropdown(
-    cx: Scope, // Auto-assign id
+    // Auto-assign id
     #[prop(into)] id: String,
 ) -> impl IntoView {
     // TODO init_script is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
-    let init_script = script(cx)
-        .attr("type", "text/javascript")
-        .inner_html(format!(
+    let init_script = script().attr("type", "text/javascript").inner_html(format!(
         "if (typeof te !== 'undefined') {{ new te.Dropdown(document.getElementById(\"{id}\")); }}"
     ));
 
-    view! {cx,
+    view! {
         <div class="relative" data-te-dropdown-ref id=id.clone()>
             <button
                 class="flex items-center whitespace-nowrap rounded bg-primary px-6 pb-2 pt-2.5 text-xs font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_#3b71ca] transition duration-150 ease-in-out hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] motion-reduce:transition-none dark:shadow-[0_4px_9px_-4px_rgba(59,113,202,0.5)] dark:hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)]"
@@ -71,8 +69,8 @@ pub fn Dropdown(
 }
 
 #[component]
-fn DropdownCaret(cx: Scope) -> impl IntoView {
-    view! {cx,
+fn DropdownCaret() -> impl IntoView {
+    view! {
         <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"

@@ -5,7 +5,6 @@ use leptos::*;
 /// See [Tailwind Elements: Switch](https://tailwind-elements.com/docs/standard/forms/switch/)
 #[component]
 pub fn Switch<OnChangeFn: Fn(bool) + 'static>(
-    cx: Scope,
     /// This signal is read to show the current state of the switch
     /// Whenever this signal changes, the switch is updated.
     /// But note that the switch can also be toggled by the user and if the `on_change` function doesn't
@@ -29,7 +28,7 @@ pub fn Switch<OnChangeFn: Fn(bool) + 'static>(
         class
     };
 
-    view! {cx,
+    view! {
         <input
             type="checkbox"
             role="switch"

@@ -43,8 +43,8 @@ pub use server_setup::AxumRouterExt;
 
 /// Add this component to your app to initialize Tailwind Elements
 #[component]
-pub fn TwElementsSetup(cx: Scope) -> impl IntoView {
-    view! {cx,
+pub fn TwElementsSetup() -> impl IntoView {
+    view! {
         <Script defer="true" type_="text/javascript" src=JS_URL />
     }
 }
