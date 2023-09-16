@@ -13,3 +13,6 @@ pub mod navigation;
 
 mod spinner;
 pub use spinner::Spinner;
+
+mod modal;
+pub use modal::Modal;
