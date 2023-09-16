@@ -122,6 +122,7 @@ where
         <div
             ref=modal_ref
             class="fixed left-0 top-0 z-[1055] hidden h-full w-full overflow-y-auto overflow-x-hidden outline-none"
+            // TODO Set ids through out the modal correctly
             id="exampleModalCenter"
             tabindex="-1"
             aria-labelledby="exampleModalCenterTitle"
