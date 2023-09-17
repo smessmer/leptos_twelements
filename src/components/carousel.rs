@@ -45,7 +45,7 @@ pub fn Carousel(
 
     // TODO Put parts of this view (e.g. the buttons) into subcomponents
     view! {
-        <div ref=element_ref id=id.clone() class="relative">
+        <div ref=element_ref id=id.clone() class="relative h-full">
             // Carousel Indicators
             <div
                 class="absolute bottom-0 left-0 right-0 z-[2] mx-[15%] mb-4 flex list-none justify-center p-0"
@@ -66,10 +66,10 @@ pub fn Carousel(
 
             // Carousel Items
             <div
-                class="relative w-full overflow-hidden after:clear-both after:block after:content-['']"
+                class="relative w-full h-full overflow-hidden after:clear-both after:block after:content-['']"
             >
                 <For each=images_with_index key=|(_index, img)| img.key view=move |(index, img)| {
-                    let mut class = "relative float-left -mr-[100%] w-full transition-transform duration-[600ms] ease-in-out motion-reduce:transition-none".to_string();
+                    let mut class = "relative h-full float-left -mr-[100%] w-full transition-transform duration-[600ms] ease-in-out motion-reduce:transition-none".to_string();
                     if index != 0 {
                         class.push_str(" hidden");
                     }
@@ -82,7 +82,7 @@ pub fn Carousel(
                     >
                         <img
                             src=img.src
-                            class="block w-full"
+                            class="block w-full absolute h-full object-cover"
                             alt=img.alt />
                         <div
                             class="absolute inset-x-[15%] bottom-5 hidden py-5 text-center text-white md:block">
