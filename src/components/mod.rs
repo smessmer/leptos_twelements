@@ -12,7 +12,7 @@ pub mod forms;
 pub mod navigation;
 
 mod spinner;
-pub use spinner::Spinner;
+pub use spinner::{Spinner, SpinnerSize};
 
 mod modal;
 pub use modal::Modal;
