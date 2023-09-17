@@ -6,8 +6,6 @@ use std::time::Duration;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use web_sys::HtmlDivElement;
 
-use crate::utils::SignalExt;
-
 // TODO Make more flexible, allow more options
 
 /// A Carousel component
@@ -56,21 +54,10 @@ pub fn Carousel(
         }
     });
 
-    // Memoize images so that if the signal gets triggered but the list didn't actually change, we don't update the carousel.
-    let images = create_memo(move |_| images());
-
-    let images_with_indices = images.map(|images| {
-        images
-            .iter()
-            .cloned()
-            .enumerate()
-            .collect::<Vec<(usize, CarouselImage)>>()
-    });
-
     view! {
         <div ref=element_ref id=carousel_id.clone() class="relative h-full">
-            <CarouselIndicators carousel_id=carousel_id.clone() images_with_indices jscarousel=Arc::clone(&jscarousel) />
-            <CarouselItems images_with_indices />
+            <CarouselIndicators carousel_id=carousel_id.clone() images=images.clone() jscarousel=Arc::clone(&jscarousel) />
+            <CarouselItems images />
             <CarouselPrevNextButton carousel_id=carousel_id.clone() direction=PrevNext::Prev jscarousel=Arc::clone(&jscarousel) />
             <CarouselPrevNextButton carousel_id direction=PrevNext::Next jscarousel=Arc::clone(&jscarousel) />
         </div>
@@ -80,16 +67,16 @@ pub fn Carousel(
 #[component]
 fn CarouselIndicators(
     carousel_id: Oco<'static, str>,
-    images_with_indices: Signal<Vec<(usize, CarouselImage)>>,
+    images: MaybeSignal<Vec<CarouselImage>>,
     jscarousel: Arc<Mutex<Option<JsCarousel>>>,
 ) -> impl IntoView {
+    let indices = create_memo(move |_| images.with(|images| (0..images.len())));
     view! {
         <div
             class="absolute bottom-0 left-0 right-0 z-[2] mx-[15%] mb-4 flex list-none justify-center p-0"
             data-te-carousel-indicators
         >
-            // It's enough to take `index` as the key here because indicators don't depend on anything from the image.
-            <For each=images_with_indices key=|(index, _img)| *index view=move |(index, _img)| view!{
+            <For each=indices key=|index| *index view=move |index| view!{
                 {
                     let jscarousel = Arc::clone(&jscarousel);
                     view! {
@@ -117,12 +104,24 @@ fn CarouselIndicators(
 }
 
 #[component]
-fn CarouselItems(images_with_indices: Signal<Vec<(usize, CarouselImage)>>) -> impl IntoView {
+fn CarouselItems(images: MaybeSignal<Vec<CarouselImage>>) -> impl IntoView {
+    let images_clone = images.clone();
+    let indices = create_memo(move |_| images_clone.with(|images| (0..images.len())));
     view! {
         <div
             class="relative w-full h-full overflow-hidden after:clear-both after:block after:content-['']"
         >
-            <For each=images_with_indices key=|(_index, img)| img.clone() view=move |(index, img)| {
+            <For each=indices key=|index| *index view=move |index| {
+                // TODO Are all these clone calls needed?
+                let images_1 = images.clone();
+                let images_2 = images.clone();
+                let images_3 = images.clone();
+                let images_4 = images.clone();
+                let src = move || with!(|images_1| images_1[index].src.clone());
+                let alt = move || with!(|images_2| images_2[index].alt.clone());
+                let title = move || with!(|images_3| images_3[index].title.clone());
+                let subtitle = move || with!(|images_4| images_4[index].subtitle.clone());
+
                 let mut class = "relative h-full float-left -mr-[100%] w-full transition-transform duration-[600ms] ease-in-out motion-reduce:transition-none".to_string();
                 if index != 0 {
                     class.push_str(" hidden");
@@ -135,16 +134,16 @@ fn CarouselItems(images_with_indices: Signal<Vec<(usize, CarouselImage)>>) -> im
                     style="backface-visibility: hidden"
                 >
                     <img
-                        src=img.src
+                        src=src
                         class="block w-full absolute h-full object-cover"
-                        alt=img.alt />
+                        alt=alt />
                     <div
                         class="absolute inset-x-[15%] bottom-5 hidden py-5 text-center text-white md:block">
                         <h5 class="text-xl">
-                            {img.title}
+                            {title}
                         </h5>
                         <p>
-                            {img.subtitle}
+                            {subtitle}
                         </p>
                     </div>
                 </div>
