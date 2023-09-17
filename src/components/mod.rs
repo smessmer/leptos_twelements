@@ -16,3 +16,6 @@ pub use spinner::{Spinner, SpinnerSize};
 
 mod modal;
 pub use modal::Modal;
+
+mod carousel;
+pub use carousel::{Carousel, CarouselImage};
