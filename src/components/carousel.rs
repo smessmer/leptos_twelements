@@ -191,16 +191,11 @@ fn CarouselPrevNextButton(
             type="button"
             on:click=
                 move |_| {
-                    {
-                        leptos_dom::logging::console_log("Clicked prev/next button");
-                        on_click(&jscarousel
-                            .lock()
-                            .unwrap()
-                            .as_ref()
-                            .expect("Carousel not initialized"));
-                        leptos_dom::logging::console_log("Clicked prev/next button...done");
-                    }
-                    leptos_dom::logging::console_log("Clicked prev/next button...clean");
+                    on_click(&jscarousel
+                        .lock()
+                        .unwrap()
+                        .as_ref()
+                        .expect("Carousel not initialized"));
                 }
             data-te-target=format!("#{carousel_id}")
             data-te-slide=slide
