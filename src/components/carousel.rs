@@ -117,10 +117,11 @@ fn CarouselItems(images: MaybeSignal<Vec<CarouselImage>>) -> impl IntoView {
                 let images_2 = images.clone();
                 let images_3 = images.clone();
                 let images_4 = images.clone();
-                let src = move || with!(|images_1| images_1[index].src.clone());
-                let alt = move || with!(|images_2| images_2[index].alt.clone());
-                let title = move || with!(|images_3| images_3[index].title.clone());
-                let subtitle = move || with!(|images_4| images_4[index].subtitle.clone());
+                // We need to gracefully allow out-of-bounds accesses because `<For />` will not quickly enough remove elements if the input list shrinks
+                let src = move || with!(|images_1| images_1.get(index).map(|i| i.src.clone()).unwrap_or_else(String::new));
+                let alt = move || with!(|images_2| images_2.get(index).map(|i| i.alt.clone()).unwrap_or_else(String::new));
+                let title = move || with!(|images_3| images_3.get(index).map(|i| i.title.clone()).unwrap_or_else(String::new));
+                let subtitle = move || with!(|images_4| images_4.get(index).map(|i| i.subtitle.clone()).unwrap_or_else(String::new));
 
                 let mut class = "relative h-full float-left -mr-[100%] w-full transition-transform duration-[600ms] ease-in-out motion-reduce:transition-none".to_string();
                 if index != 0 {
