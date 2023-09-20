@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::hash::Hash;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use wasm_bindgen::{closure::Closure, prelude::wasm_bindgen, JsValue};
 use web_sys::HtmlDivElement;
 
 // TODO Make more flexible, allow more options
@@ -12,20 +12,26 @@ use web_sys::HtmlDivElement;
 ///
 /// See [Tailwind Elements: Carousel](https://tailwind-elements.com/docs/standard/components/carousel/)
 #[component]
-pub fn Carousel(
+pub fn Carousel<OnChangeFn: Fn(Option<u32>) + 'static>(
     // TODO Make optional (and don't auto-slide when None). This is how the Tailwind Elements API handles it.
     #[prop(into)] interval: MaybeSignal<Duration>,
     #[prop(into, default=vec![].into())] images: MaybeSignal<Vec<CarouselImage>>,
     // TODO Auto-assign id
     #[prop(into)] id: String,
+    /// This is called whenever the currently active image changes. It will be called with `None` during a transition between images.
+    on_change_current_image_index: OnChangeFn,
 ) -> impl IntoView {
     let carousel_id: Oco<'_, str> = Oco::Owned(id);
+
+    // Set initial value. We hardcoded the carousel to start at the first image.
+    on_change_current_image_index(Some(0));
 
     let jscarousel = Arc::new(Mutex::new(None));
 
     // TODO This explicit initialization is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
     let element_ref: NodeRef<Div> = create_node_ref();
     let jscarousel_clone = Arc::clone(&jscarousel);
+    let on_change_current_image_index = store_value(on_change_current_image_index);
     create_effect(move |_| {
         if let Some(element) = element_ref() {
             let options = JsCarouselOptions {
@@ -33,13 +39,25 @@ pub fn Carousel(
                 ride: "carousel".to_string(),
                 pause: "hover".to_string(),
             };
+            let jscarousel =
+                JsCarousel::new(&element, serde_wasm_bindgen::to_value(&options).unwrap());
             let mut jscarousel_guard = jscarousel_clone.lock().unwrap();
             assert!(jscarousel_guard.is_none(), "Tried to set JsCarousel twice");
-            *jscarousel_guard = Some(JsCarousel::new(
-                &element,
-                serde_wasm_bindgen::to_value(&options).unwrap(),
-            ));
+            *jscarousel_guard = Some(jscarousel);
             std::mem::drop(jscarousel_guard);
+
+            let on_slide = Closure::new(move |_to_index: i32| {
+                on_change_current_image_index.with_value(|c| c(None));
+            });
+
+            let on_slid = Closure::new(move |to_index: i32| {
+                on_change_current_image_index.with_value(|c| {
+                    c(Some(u32::try_from(to_index).expect("negative slide index")))
+                });
+            });
+            te_carousel_add_event_listener(&element, "slide.te.carousel", &on_slide);
+            te_carousel_add_event_listener(&element, "slid.te.carousel", &on_slid);
+
             let jscarousel_clone = Arc::clone(&jscarousel_clone);
             on_cleanup(move || {
                 jscarousel_clone
@@ -49,7 +67,9 @@ pub fn Carousel(
                     .expect(
                         "Tried to drop a JsCarousel that was already dropped or never initialized",
                     )
-                    .dispose()
+                    .dispose();
+                std::mem::drop(on_slid);
+                std::mem::drop(on_slide);
             });
         }
     });
@@ -260,6 +280,20 @@ extern "C" {
 
     #[wasm_bindgen(method, js_namespace = te, js_class = Carousel, final)]
     fn dispose(this: &JsCarousel);
+}
+
+#[wasm_bindgen(
+    inline_js = "export function te_carousel_add_event_listener(carousel_html_elem, event_name, callback) { carousel_html_elem.addEventListener(event_name, (event) => {
+        callback(event.to);
+    }); }"
+)]
+extern "C" {
+    #[wasm_bindgen]
+    fn te_carousel_add_event_listener(
+        carousel: &web_sys::HtmlElement,
+        event_name: &str,
+        callback: &Closure<dyn FnMut(i32)>,
+    );
 }
 
 #[derive(Serialize, Deserialize)]
