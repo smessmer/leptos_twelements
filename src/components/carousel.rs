@@ -21,6 +21,7 @@ pub fn Carousel<OnChangeFn: Fn(Option<u32>) + 'static>(
     /// This is called whenever the currently active image changes. It will be called with `None` during a transition between images.
     // TODO This should probably be an optional prop
     on_change_current_image_index: OnChangeFn,
+    #[prop(into, default=true.into())] slideshow_running: MaybeSignal<bool>,
 ) -> impl IntoView {
     let carousel_id: Oco<'_, str> = Oco::Owned(id);
 
@@ -42,6 +43,10 @@ pub fn Carousel<OnChangeFn: Fn(Option<u32>) + 'static>(
             };
             let jscarousel =
                 JsCarousel::new(&element, serde_wasm_bindgen::to_value(&options).unwrap());
+            if !slideshow_running.get_untracked() {
+                // Start paused if the starting value of `slideshow_running` says so
+                jscarousel.pause();
+            }
             let mut jscarousel_guard = jscarousel_clone.lock().unwrap();
             assert!(jscarousel_guard.is_none(), "Tried to set JsCarousel twice");
             *jscarousel_guard = Some(jscarousel);
@@ -56,6 +61,7 @@ pub fn Carousel<OnChangeFn: Fn(Option<u32>) + 'static>(
                     c(Some(u32::try_from(to_index).expect("negative slide index")))
                 });
             });
+            // TODO leptos_use has an addEventListener function that automatically cleans itself up on scope exit. We probably should use that.
             te_carousel_add_event_listener(&element, "slide.te.carousel", &on_slide);
             te_carousel_add_event_listener(&element, "slid.te.carousel", &on_slid);
 
@@ -72,6 +78,40 @@ pub fn Carousel<OnChangeFn: Fn(Option<u32>) + 'static>(
                 std::mem::drop(on_slid);
                 std::mem::drop(on_slide);
             });
+        }
+    });
+
+    // Pause/restart slideshow
+    let jscarousel_clone = Arc::clone(&jscarousel);
+    create_effect(move |prev_value| {
+        if let Some(jscarousel) = jscarousel_clone.lock().unwrap().as_ref() {
+            if slideshow_running() {
+                match prev_value {
+                    None | Some(false) => jscarousel.cycle(),
+                    Some(true) =>
+                    /* already running */
+                    {
+                        ()
+                    }
+                }
+                true
+            } else {
+                match prev_value {
+                    None | Some(true) => jscarousel.pause(),
+                    Some(false) =>
+                    /* already paused */
+                    {
+                        ()
+                    }
+                }
+                false
+            }
+        } else {
+            // not initialized yet. This is ok, we'll pick up the current value of `slideshow_running` during initialization and correctly pause if necessary.
+            // TODO Not 100% sure that this avoids all race conditions. Might be better to move away from the Arc<Mutex<JsCarousel>> and instead use
+            //      `element_ref` with ts elements `getInstance` to get the carousel object from the html element here. Then this effect would automatically
+            //      run whenever element_ref gets initialized.
+            false
         }
     });
 
@@ -278,6 +318,12 @@ extern "C" {
 
     #[wasm_bindgen(method, js_namespace = te, js_class = Carousel, final)]
     fn to(this: &JsCarousel, index: usize);
+
+    #[wasm_bindgen(method, js_namespace = te, js_class = Carousel, final)]
+    fn pause(this: &JsCarousel);
+
+    #[wasm_bindgen(method, js_namespace = te, js_class = Carousel, final)]
+    fn cycle(this: &JsCarousel);
 
     #[wasm_bindgen(method, js_namespace = te, js_class = Carousel, final)]
     fn dispose(this: &JsCarousel);
