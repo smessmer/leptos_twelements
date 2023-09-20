@@ -19,6 +19,7 @@ pub fn Carousel<OnChangeFn: Fn(Option<u32>) + 'static>(
     // TODO Auto-assign id
     #[prop(into)] id: String,
     /// This is called whenever the currently active image changes. It will be called with `None` during a transition between images.
+    // TODO This should probably be an optional prop
     on_change_current_image_index: OnChangeFn,
 ) -> impl IntoView {
     let carousel_id: Oco<'_, str> = Oco::Owned(id);
