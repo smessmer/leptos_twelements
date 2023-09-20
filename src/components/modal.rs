@@ -1,6 +1,6 @@
 use leptos::{html::Div, *};
 use std::sync::{Arc, Mutex};
-use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::{closure::Closure, prelude::wasm_bindgen};
 use web_sys::HtmlDivElement;
 
 // TODO Modal can do so much more. Make this more flexible, e.g. allow call sites to give us Views not just Strings for the modal sections.
@@ -17,6 +17,7 @@ where
     message: String,
     buttons: ButtonsFn,
     modal_impl: Arc<ModalImpl>,
+    showing: ReadSignal<bool>,
 }
 
 impl<ButtonsFn, ButtonsView> Modal<ButtonsFn, ButtonsView>
@@ -27,13 +28,16 @@ where
     /// TODO Docs
     // TODO Builder pattern instead of constructor
     pub fn new(title: impl Into<String>, message: impl Into<String>, buttons: ButtonsFn) -> Self {
+        let (showing, set_showing) = create_signal(false);
         Self {
             title: title.into(),
             message: message.into(),
             buttons,
             modal_impl: Arc::new(ModalImpl {
                 jsmodal: Mutex::new(None),
+                set_showing,
             }),
+            showing,
         }
     }
 
@@ -64,11 +68,17 @@ where
     pub fn show(&self) {
         self.modal_impl.show();
     }
+
+    /// TODO Docs
+    pub fn showing(&self) -> ReadSignal<bool> {
+        self.showing
+    }
 }
 
 // TODO Better name for ModalImpl
 pub struct ModalImpl {
     jsmodal: Mutex<Option<JsModal>>,
+    set_showing: WriteSignal<bool>,
 }
 
 impl ModalImpl {
@@ -107,11 +117,31 @@ where
         if let Some(element) = modal_ref() {
             let modal_impl = Arc::clone(&modal_impl_clone);
             *modal_impl.jsmodal.lock().unwrap() = Some(JsModal::new(&element));
+
+            let on_show: Closure<dyn FnMut()> = {
+                let modal_impl = Arc::clone(&modal_impl);
+                Closure::new(move || {
+                    (modal_impl.set_showing)(true);
+                })
+            };
+
+            let on_hidden: Closure<dyn FnMut()> = {
+                let modal_impl = Arc::clone(&modal_impl);
+                Closure::new(move || {
+                    (modal_impl.set_showing)(false);
+                })
+            };
+
+            te_modal_add_event_listener(&element, "show.te.modal", &on_show);
+            te_modal_add_event_listener(&element, "hidden.te.modal", &on_hidden);
+
             on_cleanup(move || {
                 let jsmodal = modal_impl.jsmodal.lock().unwrap().take();
                 if let Some(jsmodal) = jsmodal {
                     jsmodal.dispose();
                 }
+                std::mem::drop(on_show);
+                std::mem::drop(on_hidden);
             });
         }
     });
@@ -207,4 +237,18 @@ extern "C" {
 
     #[wasm_bindgen(method, js_namespace = te, js_class = Modal, final)]
     fn dispose(this: &JsModal);
+}
+
+#[wasm_bindgen(
+    inline_js = "export function te_modal_add_event_listener(modal_html_elem, event_name, callback) { modal_html_elem.addEventListener(event_name, (event) => {
+        callback(event.to);
+    }); }"
+)]
+extern "C" {
+    #[wasm_bindgen]
+    fn te_modal_add_event_listener(
+        modal: &web_sys::HtmlElement,
+        event_name: &str,
+        callback: &Closure<dyn FnMut()>,
+    );
 }
