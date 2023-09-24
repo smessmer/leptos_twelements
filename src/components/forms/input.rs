@@ -2,7 +2,7 @@ use leptos::{html::Div, *};
 use wasm_bindgen::prelude::wasm_bindgen;
 use web_sys::HtmlDivElement;
 
-use crate::utils::MaybeSignalExt;
+use crate::utils::{MaybeSignalExt, SignalBoolExt};
 
 /// The type of an input field. This influences behavior of the input field and how its content is validated.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -75,6 +75,12 @@ pub fn Input<OnChangeFn: Fn(String) + 'static>(
     // TODO sizing, see https://tailwind-elements.com/docs/standard/forms/inputs/
     // TODO character counter?
     // TODO Label (seems pretty neat, it moves to the top of the field), also floating labels that stay inside the field?
+    // TODO Allow min/step for non-number (e.g. date)? see https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/step
+    #[prop(into, default = 0.0.into())] min: MaybeSignal<f32>,
+    #[prop(into, default = 0.0.into())] step: MaybeSignal<f32>,
+    /// Display a unit symbol in the input field
+    #[prop(into, default = "".to_string().into())]
+    unit: MaybeSignal<String>,
 ) -> impl IntoView {
     let class = move || {
         let mut class = "peer block min-h-[auto] w-full rounded border-0 px-3 py-[0.32rem] leading-[1.6] outline-none transition-all duration-200 ease-linear focus:placeholder:opacity-100 peer-focus:text-primary data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 dark:peer-focus:text-primary [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0".to_string();
@@ -97,6 +103,8 @@ pub fn Input<OnChangeFn: Fn(String) + 'static>(
 
     let id = if id.is_empty() { None } else { Some(id) };
 
+    let unit = store_value(unit);
+
     view! {
         <div ref=element_ref class="relative mb-3">
             <input
@@ -107,6 +115,8 @@ pub fn Input<OnChangeFn: Fn(String) + 'static>(
                 id=id.clone()
                 disabled=disabled
                 readonly=readonly
+                min=move || if input_type() == InputType::Number { Some(min().to_string()) } else { None }
+                step=move || if input_type() == InputType::Number { Some(step().to_string()) } else { None }
                 prop:value=value
                 on:input=move |ev| {
                     on_change(event_target_value(&ev));
@@ -118,6 +128,10 @@ pub fn Input<OnChangeFn: Fn(String) + 'static>(
             >
                 {label}
             </label>
+            <Show when=unit.with_value(|unit| unit.map(String::is_empty).not()) fallback=move || view!{}>
+                // TODO Would be nicer to show the unit appended to the input text instead of at the right border of the field
+                <span class="pointer-events-none absolute right-8 top-0 mb-0 max-w-[90%] pt-[0.37rem] leading-[1.6] text-neutral-500 dark:text-neutral-200">{unit}</span>
+            </Show>
         </div>
     }
 }
