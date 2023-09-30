@@ -34,7 +34,7 @@ pub fn Select<O, OnChangeFn>(
 ) -> impl IntoView
 where
     O: SelectOption + Clone + 'static,
-    OnChangeFn: Fn(&O) + Clone + 'static,
+    OnChangeFn: Fn(O) + Clone + 'static,
 {
     // TODO This explicit initialization is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
     let element_ref: NodeRef<leptos::html::Select> = create_node_ref();
@@ -58,7 +58,7 @@ where
                             option_value
                         );
                     };
-                    on_change(value);
+                    on_change(value.clone());
                 })
             });
 
