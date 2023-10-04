@@ -137,29 +137,27 @@ fn CarouselIndicators(
             class="absolute bottom-0 left-0 right-0 z-[2] mx-[15%] mb-4 flex list-none justify-center p-0"
             data-te-carousel-indicators
         >
-            <For each=indices key=|index| *index view=move |index| view!{
-                {
-                    let jscarousel = Arc::clone(&jscarousel);
-                    view! {
-                        <button
-                            type="button"
-                            data-te-target=format!("#{carousel_id}")
-                            data-te-slide-to=index
-                            on:click=move |_| {
-                                jscarousel
-                                    .lock()
-                                    .unwrap()
-                                    .as_ref()
-                                    .expect("Carousel not initialized")
-                                    .to(index)
-                            }
-                            data-te-carousel-active={index == 0} // Set the first image to be initially active
-                            class="mx-[3px] box-content h-[3px] w-[30px] flex-initial cursor-pointer border-0 border-y-[10px] border-solid border-transparent bg-white bg-clip-padding p-0 -indent-[999px] opacity-50 transition-opacity duration-[600ms] ease-[cubic-bezier(0.25,0.1,0.25,1.0)] motion-reduce:transition-none"
-                            aria-current={if index == 0 {Some("true")} else {None}} // Set the first image to be initially active
-                            aria-label=format!("Image {index}") />
-                    }
+            <For each=indices key=|index| *index let:index >{
+                let jscarousel = Arc::clone(&jscarousel);
+                view! {
+                    <button
+                        type="button"
+                        data-te-target=format!("#{carousel_id}")
+                        data-te-slide-to=index
+                        on:click=move |_| {
+                            jscarousel
+                                .lock()
+                                .unwrap()
+                                .as_ref()
+                                .expect("Carousel not initialized")
+                                .to(index)
+                        }
+                        data-te-carousel-active={index == 0} // Set the first image to be initially active
+                        class="mx-[3px] box-content h-[3px] w-[30px] flex-initial cursor-pointer border-0 border-y-[10px] border-solid border-transparent bg-white bg-clip-padding p-0 -indent-[999px] opacity-50 transition-opacity duration-[600ms] ease-[cubic-bezier(0.25,0.1,0.25,1.0)] motion-reduce:transition-none"
+                        aria-current={if index == 0 {Some("true")} else {None}} // Set the first image to be initially active
+                        aria-label=format!("Image {index}") />
                 }
-            } />
+            }</For>
         </div>
     }
 }
@@ -172,7 +170,7 @@ fn CarouselItems(images: MaybeSignal<Vec<CarouselImage>>) -> impl IntoView {
         <div
             class="relative w-full h-full overflow-hidden after:clear-both after:block after:content-['']"
         >
-            <For each=indices key=|index| *index view=move |index| {
+            <For each=indices key=|index| *index let:index>{
                 // TODO Are all these clone calls needed?
                 let images_1 = images.clone();
                 let images_2 = images.clone();
@@ -189,27 +187,28 @@ fn CarouselItems(images: MaybeSignal<Vec<CarouselImage>>) -> impl IntoView {
                     class.push_str(" hidden");
                 }
                 view!{
-                <div
-                    class=class
-                    data-te-carousel-active={index == 0} // Set the first image to be initially active
-                    data-te-carousel-item
-                    style="backface-visibility: hidden"
-                >
-                    <img
-                        src=src
-                        class="block w-full absolute h-full object-cover"
-                        alt=alt />
                     <div
-                        class="absolute inset-x-[15%] bottom-5 hidden py-5 text-center text-white md:block">
-                        <h5 class="text-xl">
-                            {title}
-                        </h5>
-                        <p>
-                            {subtitle}
-                        </p>
+                        class=class
+                        data-te-carousel-active={index == 0} // Set the first image to be initially active
+                        data-te-carousel-item
+                        style="backface-visibility: hidden"
+                    >
+                        <img
+                            src=src
+                            class="block w-full absolute h-full object-cover"
+                            alt=alt />
+                        <div
+                            class="absolute inset-x-[15%] bottom-5 hidden py-5 text-center text-white md:block">
+                            <h5 class="text-xl">
+                                {title}
+                            </h5>
+                            <p>
+                                {subtitle}
+                            </p>
+                        </div>
                     </div>
-                </div>
-            }} />
+                }
+            }</For>
         </div>
     }
 }
