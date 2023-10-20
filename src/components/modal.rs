@@ -1,4 +1,7 @@
-use leptos::{html::Div, *};
+use leptos::{
+    html::{Div, A},
+    *,
+};
 use std::sync::{Arc, Mutex};
 use wasm_bindgen::{closure::Closure, prelude::wasm_bindgen};
 use web_sys::HtmlDivElement;
@@ -8,31 +11,27 @@ use web_sys::HtmlDivElement;
 /// A Modal component.
 ///
 /// See [Tailwind Elements: Modal](https://tailwind-elements.com/docs/standard/components/modal/)
-pub struct Modal<ButtonsFn, ButtonsView>
+pub struct Modal<ContentFn, ContentView>
 where
-    ButtonsFn: Clone + Fn(Arc<ModalImpl>) -> ButtonsView + 'static,
-    ButtonsView: IntoView,
+    ContentFn: Clone + Fn(Arc<ModalImpl>) -> ContentView + 'static,
+    ContentView: IntoView,
 {
-    title: String,
-    message: String,
-    buttons: ButtonsFn,
+    content: ContentFn,
     modal_impl: Arc<ModalImpl>,
     showing: ReadSignal<bool>,
 }
 
-impl<ButtonsFn, ButtonsView> Modal<ButtonsFn, ButtonsView>
+impl<ContentFn, ContentView> Modal<ContentFn, ContentView>
 where
-    ButtonsFn: Clone + Fn(Arc<ModalImpl>) -> ButtonsView + 'static,
-    ButtonsView: IntoView,
+    ContentFn: Clone + Fn(Arc<ModalImpl>) -> ContentView + 'static,
+    ContentView: IntoView,
 {
     /// TODO Docs
     // TODO Builder pattern instead of constructor
-    pub fn new(title: impl Into<String>, message: impl Into<String>, buttons: ButtonsFn) -> Self {
+    pub fn new(content: ContentFn) -> Self {
         let (showing, set_showing) = create_signal(false);
         Self {
-            title: title.into(),
-            message: message.into(),
-            buttons,
+            content,
             modal_impl: Arc::new(ModalImpl {
                 jsmodal: Mutex::new(None),
                 set_showing,
@@ -60,7 +59,7 @@ where
     /// ```
     pub fn view(&self) -> impl IntoView {
         view! {
-            <ModalView modal_impl=Arc::clone(&self.modal_impl) title=self.title.clone() message=self.message.clone() buttons=self.buttons.clone() />
+            <ModalView modal_impl=Arc::clone(&self.modal_impl) content=self.content.clone() />
         }
     }
 
@@ -100,15 +99,13 @@ impl ModalImpl {
 }
 
 #[component]
-fn ModalView<ButtonsFn, ButtonsView>(
+fn ModalView<ContentFn, ContentView>(
     modal_impl: Arc<ModalImpl>,
-    title: String,
-    message: String,
-    buttons: ButtonsFn,
+    content: ContentFn,
 ) -> impl IntoView
 where
-    ButtonsFn: Fn(Arc<ModalImpl>) -> ButtonsView + 'static,
-    ButtonsView: IntoView,
+    ContentFn: Fn(Arc<ModalImpl>) -> ContentView + 'static,
+    ContentView: IntoView,
 {
     // TODO This explicit initialization is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
     let modal_ref: NodeRef<Div> = create_node_ref();
@@ -145,8 +142,7 @@ where
             });
         }
     });
-    let modal_impl_1 = Arc::clone(&modal_impl);
-    let modal_impl_2 = Arc::clone(&modal_impl);
+    provide_context::<Arc<ModalImpl>>(Arc::clone(&modal_impl));
 
     view! {
         <div
@@ -163,30 +159,46 @@ where
                 class="pointer-events-none relative flex min-h-[calc(100%-1rem)] w-auto translate-y-[-50px] items-center opacity-0 transition-all duration-300 ease-in-out min-[576px]:mx-auto min-[576px]:mt-7 min-[576px]:min-h-[calc(100%-3.5rem)] min-[576px]:max-w-[500px]">
                 <div
                     class="pointer-events-auto relative flex w-full flex-col rounded-md border-none bg-white bg-clip-padding text-current shadow-lg outline-none dark:bg-neutral-600">
-                    <div
-                        class="flex flex-shrink-0 items-center justify-between rounded-t-md border-b-2 border-neutral-100 border-opacity-100 p-4 dark:border-opacity-50">
-                        // Modal title
-                        <h5
-                            class="text-xl font-medium leading-normal text-neutral-800 dark:text-neutral-200"
-                            id="exampleModalCenterTitle">
-                            {title}
-                        </h5>
-                        // Close button
-                        <CloseButton on:click=move |_| modal_impl_1.hide() />
-                    </div>
-
-                    // Modal body
-                    <div class="relative p-4">
-                        <p>{message}</p>
-                    </div>
-
-                    // Modal footer
-                    <div
-                        class="flex flex-shrink-0 flex-wrap items-center justify-end rounded-b-md border-t-2 border-neutral-100 border-opacity-100 p-4 gap-4 dark:border-opacity-50">
-                        {move || buttons(Arc::clone(&modal_impl_2))}
-                    </div>
+                    {content(modal_impl)}
                 </div>
             </div>
+        </div>
+    }
+}
+
+#[component]
+pub fn ModalHeader(children: Children) -> impl IntoView {
+    let modal_impl = use_context::<Arc<ModalImpl>>().expect("Expected ModalImpl in context");
+    view! {
+        <div
+            class="flex flex-shrink-0 items-center justify-between rounded-t-md border-b-2 border-neutral-100 border-opacity-100 p-4 dark:border-opacity-50">
+            // Modal title
+            <h5
+                class="text-xl font-medium leading-normal text-neutral-800 dark:text-neutral-200"
+                id="exampleModalCenterTitle">
+                {children()}
+            </h5>
+            // Close button
+            <CloseButton on:click=move |_| modal_impl.hide() />
+        </div>
+    }
+}
+
+#[component]
+pub fn ModalBody(children: Children) -> impl IntoView {
+    view! {
+        <div class="relative p-4">
+            {children()}
+        </div>
+    }
+}
+
+#[component]
+pub fn ModalFooter(children: Children) -> impl IntoView {
+    view! {
+        <div
+            class="flex flex-shrink-0 flex-wrap items-center justify-end rounded-b-md border-t-2 border-neutral-100 border-opacity-100 p-4 gap-4 dark:border-opacity-50">
+            {children()}
         </div>
     }
 }
