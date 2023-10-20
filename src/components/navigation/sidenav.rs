@@ -15,6 +15,7 @@ pub fn Sidenav(#[prop(into)] content_id: String, children: Children) -> impl Int
                 hidden: false,
                 mode: "side".to_string(),
                 content: format!("#{}", content_id),
+                position: "absolute".to_string(),
             };
             let jssidenav =
                 JsSidenav::new(&element, serde_wasm_bindgen::to_value(&options).unwrap());
@@ -72,5 +73,8 @@ struct JsSidenavOptions {
 
     #[serde(rename = "sidenavContent")]
     content: String,
+
+    #[serde(rename = "sidenavPosition")]
+    position: String,
     // TODO There are more options, see https://tailwind-elements.com/docs/standard/navigation/sidenav/#docsTabsAPI
 }
