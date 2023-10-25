@@ -15,7 +15,7 @@ pub fn Sidenav(#[prop(into)] content_id: String, children: Children) -> impl Int
                 hidden: false,
                 mode: "side".to_string(),
                 content: format!("#{}", content_id),
-                position: "absolute".to_string(),
+                position: "fixed".to_string(),
             };
             let jssidenav =
                 JsSidenav::new(&element, serde_wasm_bindgen::to_value(&options).unwrap());
@@ -26,7 +26,7 @@ pub fn Sidenav(#[prop(into)] content_id: String, children: Children) -> impl Int
     view! {
         <nav
             ref=element_ref
-            class="absolute left-0 top-0 z-[1035] h-screen w-60 -translate-x-full overflow-hidden bg-white shadow-[0_4px_12px_0_rgba(0,0,0,0.07),_0_2px_4px_rgba(0,0,0,0.05)] data-[te-sidenav-hidden='false']:translate-x-0 dark:bg-zinc-800"
+            class="fixed left-0 top-0 z-[1035] h-screen w-60 -translate-x-full overflow-hidden bg-white shadow-[0_4px_12px_0_rgba(0,0,0,0.07),_0_2px_4px_rgba(0,0,0,0.05)] data-[te-sidenav-hidden='false']:translate-x-0 dark:bg-zinc-800"
             // TODO Not sure why this additional "data-te-sidenav-hidden" is needed, the JavaScript should initialize it correctly.
             data-te-sidenav-hidden="false"
             >
