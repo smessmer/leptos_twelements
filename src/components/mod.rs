@@ -19,3 +19,6 @@ pub use modal::{Modal, ModalBody, ModalFooter, ModalHeader};
 
 mod carousel;
 pub use carousel::{Carousel, CarouselImage};
+
+mod alert;
+pub use alert::{Alert, AlertType};
