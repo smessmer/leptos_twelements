@@ -28,9 +28,6 @@ impl Modal {
             set_showing,
         };
         let modal_impl = store_value(modal_impl);
-        on_cleanup(move || {
-            modal_impl.dispose();
-        });
         let modal = Self { modal_impl };
         let view = view! {
             <ModalView modal=modal.clone() content=content />
