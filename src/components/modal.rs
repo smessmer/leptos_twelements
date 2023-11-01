@@ -1,8 +1,5 @@
-use leptos::{
-    html::{Div, A},
-    *,
-};
-use std::sync::{Arc, Mutex};
+use leptos::{html::Div, *};
+use std::sync::Mutex;
 use wasm_bindgen::{closure::Closure, prelude::wasm_bindgen};
 use web_sys::HtmlDivElement;
 
@@ -11,72 +8,55 @@ use web_sys::HtmlDivElement;
 /// A Modal component.
 ///
 /// See [Tailwind Elements: Modal](https://tailwind-elements.com/docs/standard/components/modal/)
-pub struct Modal<ContentFn, ContentView>
-where
-    ContentFn: Clone + Fn(Arc<ModalImpl>) -> ContentView + 'static,
-    ContentView: IntoView,
-{
-    content: ContentFn,
-    modal_impl: Arc<ModalImpl>,
-    showing: ReadSignal<bool>,
+#[derive(Clone, Copy)]
+pub struct Modal {
+    modal_impl: StoredValue<ModalImpl>,
 }
 
-impl<ContentFn, ContentView> Modal<ContentFn, ContentView>
-where
-    ContentFn: Clone + Fn(Arc<ModalImpl>) -> ContentView + 'static,
-    ContentView: IntoView,
-{
+impl Modal {
     /// TODO Docs
     // TODO Builder pattern instead of constructor
-    pub fn new(content: ContentFn) -> Self {
+    pub fn new<ContentFn, ContentView>(content: ContentFn) -> (Self, impl IntoView)
+    where
+        ContentFn: Clone + Fn(Self) -> ContentView + 'static,
+        ContentView: IntoView,
+    {
         let (showing, set_showing) = create_signal(false);
-        Self {
-            content,
-            modal_impl: Arc::new(ModalImpl {
-                jsmodal: Mutex::new(None),
-                set_showing,
-            }),
+        let modal_impl = ModalImpl {
+            jsmodal: Mutex::new(None),
             showing,
-        }
-    }
-
-    /// Add this to your page so that the modal view can be shown.
-    ///
-    /// Example
-    /// -------
-    /// ```
-    /// use leptos::*;
-    /// use leptos_twelements::Modal;
-    ///
-    /// #[component]
-    /// pub fn Page() -> impl IntoView {
-    ///    let modal = Modal::new();
-    ///    view! {
-    ///       {modal.view()}
-    ///       <Button on_click=move |_| modal.show()>{"Show modal"}</Button>
-    ///    }
-    /// }
-    /// ```
-    pub fn view(&self) -> impl IntoView {
-        view! {
-            <ModalView modal_impl=Arc::clone(&self.modal_impl) content=self.content.clone() />
-        }
+            set_showing,
+        };
+        let modal_impl = store_value(modal_impl);
+        on_cleanup(move || {
+            modal_impl.dispose();
+        });
+        let modal = Self { modal_impl };
+        let view = view! {
+            <ModalView modal=modal.clone() content=content />
+        };
+        (modal, view)
     }
 
     /// TODO Docs
     pub fn show(&self) {
-        self.modal_impl.show();
+        self.modal_impl.with_value(|m| m.show());
+    }
+
+    /// TODO Docs
+    pub fn hide(&self) {
+        self.modal_impl.with_value(|m| m.hide());
     }
 
     /// TODO Docs
     pub fn showing(&self) -> ReadSignal<bool> {
-        self.showing
+        self.modal_impl.with_value(|m| m.showing)
     }
 }
 
-// TODO Better name for ModalImpl
-pub struct ModalImpl {
+struct ModalImpl {
     jsmodal: Mutex<Option<JsModal>>,
+    showing: ReadSignal<bool>,
     set_showing: WriteSignal<bool>,
 }
 
@@ -99,33 +79,28 @@ impl ModalImpl {
 }
 
 #[component]
-fn ModalView<ContentFn, ContentView>(
-    modal_impl: Arc<ModalImpl>,
-    content: ContentFn,
-) -> impl IntoView
+fn ModalView<ContentFn, ContentView>(modal: Modal, content: ContentFn) -> impl IntoView
 where
-    ContentFn: Fn(Arc<ModalImpl>) -> ContentView + 'static,
+    ContentFn: Fn(Modal) -> ContentView + 'static,
     ContentView: IntoView,
 {
     // TODO This explicit initialization is a workaround for https://github.com/mdbootstrap/Tailwind-Elements/issues/1743
     let modal_ref: NodeRef<Div> = create_node_ref();
-    let modal_impl_clone = Arc::clone(&modal_impl);
     create_effect(move |_| {
         if let Some(element) = modal_ref() {
-            let modal_impl = Arc::clone(&modal_impl_clone);
-            *modal_impl.jsmodal.lock().unwrap() = Some(JsModal::new(&element));
+            modal
+                .modal_impl
+                .with_value(|m| *m.jsmodal.lock().unwrap() = Some(JsModal::new(&element)));
 
             let on_show: Closure<dyn FnMut()> = {
-                let modal_impl = Arc::clone(&modal_impl);
                 Closure::new(move || {
-                    (modal_impl.set_showing)(true);
+                    modal.modal_impl.with_value(|m| (m.set_showing)(true));
                 })
             };
 
             let on_hidden: Closure<dyn FnMut()> = {
-                let modal_impl = Arc::clone(&modal_impl);
                 Closure::new(move || {
-                    (modal_impl.set_showing)(false);
+                    modal.modal_impl.with_value(|m| (m.set_showing)(false));
                 })
             };
 
@@ -133,7 +108,9 @@ where
             te_modal_add_event_listener(&element, "hidden.te.modal", &on_hidden);
 
             on_cleanup(move || {
-                let jsmodal = modal_impl.jsmodal.lock().unwrap().take();
+                let jsmodal = modal
+                    .modal_impl
+                    .with_value(|m| m.jsmodal.lock().unwrap().take());
                 if let Some(jsmodal) = jsmodal {
                     jsmodal.dispose();
                 }
@@ -142,7 +119,7 @@ where
             });
         }
     });
-    provide_context::<Arc<ModalImpl>>(Arc::clone(&modal_impl));
+    provide_context::<Modal>(modal.clone());
 
     view! {
         <div
@@ -159,7 +136,7 @@ where
                 class="pointer-events-none relative flex min-h-[calc(100%-1rem)] w-auto translate-y-[-50px] items-center opacity-0 transition-all duration-300 ease-in-out min-[576px]:mx-auto min-[576px]:mt-7 min-[576px]:min-h-[calc(100%-3.5rem)] min-[576px]:max-w-[500px]">
                 <div
                     class="pointer-events-auto relative flex w-full flex-col rounded-md border-none bg-white bg-clip-padding text-current shadow-lg outline-none dark:bg-neutral-600">
-                    {content(modal_impl)}
+                    {content(modal)}
                 </div>
             </div>
         </div>
@@ -168,7 +145,7 @@ where
 
 #[component]
 pub fn ModalHeader(children: Children) -> impl IntoView {
-    let modal_impl = use_context::<Arc<ModalImpl>>().expect("Expected ModalImpl in context");
+    let modal = use_context::<Modal>().expect("Expected ModalImpl in context");
     view! {
         <div
             class="flex flex-shrink-0 items-center justify-between rounded-t-md border-b-2 border-neutral-100 border-opacity-100 p-4 dark:border-opacity-50">
@@ -179,7 +156,7 @@ pub fn ModalHeader(children: Children) -> impl IntoView {
                 {children()}
             </h5>
             // Close button
-            <CloseButton on:click=move |_| modal_impl.hide() />
+            <CloseButton on:click=move |_| modal.hide() />
         </div>
     }
 }
