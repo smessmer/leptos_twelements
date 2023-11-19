@@ -1,4 +1,5 @@
 use leptos::{html::Div, *};
+use std::sync::Arc;
 use std::sync::Mutex;
 use wasm_bindgen::{closure::Closure, prelude::wasm_bindgen};
 use web_sys::HtmlDivElement;
@@ -10,7 +11,7 @@ use web_sys::HtmlDivElement;
 /// See [Tailwind Elements: Modal](https://tailwind-elements.com/docs/standard/components/modal/)
 #[derive(Clone, Copy)]
 pub struct Modal {
-    modal_impl: StoredValue<ModalImpl>,
+    modal_impl: StoredValue<Arc<ModalImpl>>,
 }
 
 impl Modal {
@@ -22,11 +23,11 @@ impl Modal {
         ContentView: IntoView,
     {
         let (showing, set_showing) = create_signal(false);
-        let modal_impl = ModalImpl {
+        let modal_impl = Arc::new(ModalImpl {
             jsmodal: Mutex::new(None),
             showing,
             set_showing,
-        };
+        });
         let modal_impl = store_value(modal_impl);
         let modal = Self { modal_impl };
         let view = view! {
@@ -104,10 +105,10 @@ where
             te_modal_add_event_listener(&element, "show.te.modal", &on_show);
             te_modal_add_event_listener(&element, "hidden.te.modal", &on_hidden);
 
+            // We need to copy the Arc and capture it because the stored value may already be un-stored in `on_cleanup`.
+            let modal_impl = modal.modal_impl.with_value(Arc::clone);
             on_cleanup(move || {
-                let jsmodal = modal
-                    .modal_impl
-                    .with_value(|m| m.jsmodal.lock().unwrap().take());
+                let jsmodal = modal_impl.jsmodal.lock().unwrap().take();
                 if let Some(jsmodal) = jsmodal {
                     jsmodal.dispose();
                 }
